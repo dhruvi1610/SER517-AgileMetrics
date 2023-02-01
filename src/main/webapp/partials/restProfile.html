@@ -1,0 +1,59 @@
+<div class="well page">
+    <div class="panel panel-primary">
+        <div class="panel-heading">CAssess User Profile Details</div>
+        <div class="panel-body">
+            <h2 class="page-header">{{userData.firstName}} {{userData.familyName}}</h2>
+
+            <div class="form-group">
+
+                <h3>Authority:  </h3><h4>{{userData.authorities[0].name}}</h4>
+                <br>
+                <h3>Email:  </h3><h4>{{userData.email}}</h4>
+                <br>
+                <h3>ID:  </h3><h4>{{userData.id}}</h4>
+                <br>
+                <h3>Enabled Flag:  </h3><h4>{{userData.enabled}}</h4>
+                <br>
+                <h3>Language:  </h3><h4>{{userData.language}}</h4>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">Profile Management</div>
+        <form role="form">
+            <div class="form-group">
+
+                <h3>User Removal</h3>
+                <br>
+                <button type="submit" class="btn btn-primary" access="super_user" ng-really-message="Remove User?"? ng-really-click="removeUser()">Remove User</button>
+            </div>
+            <div class="form-group">
+
+                <h3>User Enable/Disable</h3>
+                <br>
+                <button type="submit" class="btn btn-primary" access="super_user" ng-really-message="Disable User?"? ng-really-click="disableUser()">Disable User</button>
+                <br>
+                <button type="submit" class="btn btn-primary" access="super_user" ng-really-message="Enable User?"? ng-really-click="enableUser()">Enable User</button>
+            </div>
+            <div class="form-group">
+
+                <h3>Change Password</h3>
+                <form name="profileForm" autocomplete="off" novalidate="">
+                    <fieldset>
+                        <h4 >New Password:</h4>
+                        <br>
+                        <input class="form-control" type="password" name="newPassword" ng-model="password.new" required=""/>
+                        <br>
+                        <br>
+                        <h4 >Confirm Password:</h4>
+                        <br>
+                        <input class="form-control" type="password" name="confirmPassword" ng-model="password.confirm" match-password="newPassword" required=""/>
+                    </fieldset>
+                    <button class="btn btn-primary" ng-really-message="Change Password?"? ng-really-click="submit()">Submit Change</button>
+                </form>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,60 @@
+<div ng-controller="provisionCourse">
+    <div class="well page" >
+        <h1 class="page-header">CAssess Provisioning</h1>
+        <div class="container" style="width: inherit;">
+            <div class="row">
+                <div class="col-md-1" style="margin-right: 20px;">
+                    <ul class="nav nav-pills navbar-nav navbar-left nav-stacked">
+                        <li >
+                            <a href="#/create_course" access="super_user" ng-click="setTab(1)">Course</a>
+                        </li>
+                        <li >
+                            <a href="#/create_admins" access="super_user" ng-click="setTab(2)">Admins</a>
+                        </li>
+                        <li >
+                            <a href="#/create_teams" access="super_user" ng-click="setTab(3)">Teams</a>
+                        </li>
+                        <li >
+                            <a href="#/create_students" access="super_user" ng-click="setTab(4)">Students</a>
+                        </li>
+                        <li >
+                            <a href="#/create_channels" access="super_user" ng-click="setTab(5)">Slack Channels</a>
+                        </li>
+                        <li ng-class="{ active: isSet(6) }">
+                            <a href="#/provision_course" access="super_user" ng-click="setTab(6)">Provision Course</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-8">
+                    <div class="jumbotron">
+                        <div>
+                            <label>Current JSON:</label>
+                            <pre style="overflow-y: scroll; max-height:800px;">
+                                {{jsonDisplay | json}}
+                            </pre>
+                        </div>
+                        <div>
+                            <p>Response Status: {{statusMessage}}</p>
+                            <pre style="overflow-y: scroll; max-height:500px;" ng-show="jsonMessage" class="ng-hide">
+                                Response Data: {{dataMessageJSON | json}}
+                            </pre>
+                            <pre style="overflow-y: scroll; max-height:500px;" ng-show="otherMessage" class="ng-hide">
+                                Response Data: {{dataMessageOther}}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1 pull-right">
+                    <ul class="nav navbar-nav navbar-right nav-stacked">
+                        <div>
+                            <button ng-really-message="Remove Course from CAssess?"? ng-really-click="removeCourse()" class="btn btn-primary">Remove From CAssess</button>
+                        </div>
+                        <div>
+                            <button ng-really-message="Send Course Package to CAssess?"? ng-really-click="sendCoursePackage()" class="btn btn-primary">Send To CAssess</button>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
