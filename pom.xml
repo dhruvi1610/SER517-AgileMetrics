@@ -276,7 +276,8 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>0.0.22</version>
+                <!-- <version>0.0.22</version> -->
+                <version>1.12.1</version> 
                 <executions>
                     <execution>
                         <id>install node and npm</id>
@@ -316,25 +317,34 @@
                         </goals>
                         <phase>generate-resources</phase>
                     </execution>
-                    <execution>
-                        <id>bower install</id>
-                        <goals>
-                            <goal>bower</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
+  
+                <execution>
+                    <id>bower install</id>
+                    <goals>
+                        <goal>bower</goal>
+                    </goals>
+                    <configuration>
+                        <arguments>npm install -g bower </arguments>
+                    </configuration>
+                </execution>
+                  <execution>
                         <id>gulp build</id>
                         <goals>
                             <goal>gulp</goal>
                         </goals>
                         <phase>generate-resources</phase>
                     </execution>
-                </executions>
+                </executions> 
             </plugin>
+                        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>3.3.1</version>
+        </plugin>
+
         </plugins>
+            <finalName>check</finalName>
+
     </build>
 
 </project>
