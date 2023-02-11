@@ -5,7 +5,7 @@ var uglify = require('gulp-uglify');
 var minify = require('gulp-minify-css')
 var mainBowerFiles = require('main-bower-files');
 var inject = require('gulp-inject');
-var runSequence = require('run-sequence');
+var runSequence = require('gulp4-run-sequence');
 var gzip = require('gulp-gzip');
 var clone = require('gulp-clone');
 var order = require('gulp-order');
@@ -52,10 +52,10 @@ options = {
 //    gulp.watch('js/*.js', 'scripts');
 //});
 
-gulp.task('clean', function () {
-    return gulp.src('src/main/webapp/resources/vendor', {read: false})
-        .pipe(rimraf());
-});
+// gulp.task('clean', function () {
+//     return gulp.src('src/main/webapp/resources/vendor', {read: false})
+//         .pipe(rimraf());
+// });
 
 gulp.task('lib-js-files', function () {
     vendorJs = gulp.src(mainBowerFiles('**/*.js'), {base: 'bower_components'})
@@ -120,5 +120,5 @@ gulp.task('copyFonts', function () {
 
 // Default Task
 gulp.task('default', function () {
-    runSequence('clean', 'lib-js-files', 'lib-css-files', 'copyFonts', "index");
+    runSequence('lib-js-files', 'lib-css-files', 'copyFonts', "index");
 });
