@@ -25,6 +25,12 @@
         "dist/js/bootstrap.js"
       ]
     },
+    "bootstrap-material-design": {
+      "dependencies": {
+        "jquery": "~2.1.1",
+        "bootstrap": "~3.3.5"
+      }
+    },
     "angular-http-auth": {
       "dependencies": {
         "angular": "~1.4"

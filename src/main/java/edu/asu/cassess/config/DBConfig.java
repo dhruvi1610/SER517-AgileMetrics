@@ -39,11 +39,12 @@ public class DBConfig {
         dataSource.setUrl("jdbc:mysql://localhost/cassess");
         dataSource.setUsername("root");
         dataSource.setPassword("root123");
+        jdbc:mysql://127.0.0.1:3306/?user=root
 */
         //Connection Parameters for ASU RHEL Server Deployment
-        dataSource.setUrl("jdbc:mysql://localhost/cassess");
-        dataSource.setUsername("root");
-        dataSource.setPassword("root123");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/cassess?autoReconnect=true&useSSL=false");
+        dataSource.setUsername("admin");
+        dataSource.setPassword("1234567890");
 /*
         dataSource.setUrl("jdbc:mysql://cassess.fulton.asu.edu/cassess");
         dataSource.setUsername("cassess");
@@ -96,7 +97,7 @@ public class DBConfig {
         Properties properties = new Properties();
         //validate forces schema validation on program execution; use create to recreate schema and all tables
         //based on entities; create will overwrite any existing data
-        properties.setProperty("hibernate.hbm2ddl.auto", "validate");
+        properties.setProperty("hibernate.hbm2ddl.auto", "update");
         properties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
         return properties;
     }
