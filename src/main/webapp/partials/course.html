@@ -1,0 +1,121 @@
+<div class="navbar navbar-default">
+    <div class="navbar-header">
+        <div class="navbar-collapse collapse navbar-responsive-collapse" ng-controller="CourseController">
+            <ul class="nav navbar-nav navbar-left">
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="well page">
+    <h1 class="page-header">{{courseid}} Data</h1>
+
+    <div class="container" ng-controller="TabController">
+        <div class="row">
+            <div class="col-md-2">
+                <ul class="nav nav-pills nav-stacked">
+                    <li ng-class="{ active: isSet(1) }">
+                        <a href="javascript:void(0)" ng-click="setTab(1)">Overall</a>
+                    </li>
+                    <li ng-class="{ active: isSet(2) }">
+                        <a href="javascript:void(0)" ng-click="setTab(2)">Taiga</a>
+                    </li>
+                    <li ng-class="{ active: isSet(3) }">
+                        <a href="javascript:void(0)" ng-click="setTab(3)">GitHub</a>
+                    </li>
+                    <li ng-class="{ active: isSet(4) }">
+                        <a href="javascript:void(0)" ng-click="setTab(4)">Slack</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-8">
+                <div class="jumbotron">
+                    <div ng-show="isSet(1)">
+                        <h3>Taiga-Github-Slack Frequency/Impact</h3>
+                        <br>
+                        <br>
+                        <label style="color: #066" >{{courseArrayTG[0].weekBeginning}}  To  {{courseArrayTG[0].weekEnding}}</label>
+                        <div ng-controller='CourseController' id="currentWeek">
+                            <canvas id="radarCurrent" class="chart chart-radar"
+                                    chart-data="currentWeekData" chart-options="currentWeekOptions" chart-labels="currentWeekLabels" chart-series="currentWeekSeries"
+                                    style="width:400px; height:400px;">
+                            </canvas>
+                        </div>
+                        <br>
+                        <label style="color: #066">{{courseArrayTG[1].weekBeginning}}  To  {{courseArrayTG[1].weekEnding}}</label>
+                        <div ng-controller='CourseController' id="previousWeek">
+                            <canvas id="radarPrevious" class="chart chart-radar"
+                                    chart-data="previousWeekData" chart-options="previousWeekOptions" chart-labels="previousWeekLabels" chart-series="previousWeekSeries"
+                                    style="width:400px; height:400px;">
+                            </canvas>
+                        </div>
+                    </div>
+                    <div ng-if="isSet(2)">
+                        <h2>Taiga Data</h2>
+                        <br>
+                        <h3>Average Task Totals</h3><br>
+                        <label style="color: black">Select Start Date: </label>
+                        <select class="select_style"  ng-model="SelectedWeekBeginning" ng-options="x.weekBeginning for x in courseIntervals"
+                                ng-change="IntervalChangedBegin(SelectedWeekBeginning.rawWeekBeginning)">
+                        </select>
+                        <br>
+                        <label style="color: black">Select End Date: </label>
+                        <select class="select_style"  ng-model="SelectedWeekEnding" ng-options="x.weekEnding for x in courseIntervals"
+                                ng-change="IntervalChangedEnd(SelectedWeekEnding.rawWeekEnding)">
+                        </select>
+                        <br><br>
+                        <div ng-controller='CourseController'>
+                            <nvd3 options='optionsForTaigaCourseTasks' data='dataForTaigaCourseTasks'></nvd3>
+                       <!-- </div>
+
+                        <div afterRender='fireRefreshEventOnWindow()' ng-controller='CourseController'>
+                           --> <h3>Task Status Update Activity</h3><br>
+                            <nvd3 options='optionsForTaigaCourseActivity' data='dataForTaigaCourseActivity'></nvd3>
+                        </div>
+                    </div>
+                    <div ng-if="isSet(3)">
+                        <h3>GitHub Data</h3>
+                        <br>
+                        <h3>GitHub Course Average Commit Activity</h3><br>
+                        <label style="color: black">Select Start Date</label>
+                        <select class="select_style"  ng-model="GithubSelectedWeekBeginning" ng-options="x.weekBeginning for x in githubCourseIntervals"
+                                ng-change="GithubIntervalChangedBegin(GithubSelectedWeekBeginning.rawWeekBeginning)">
+                        </select>
+                        <br>
+                        <label style="color: black">Select End Date:</label>
+                        <select class="select_style"  ng-model="GithubSelectedWeekEnding" ng-options="x.weekEnding for x in githubCourseIntervals"
+                                ng-change="GithubIntervalChangedEnd(GithubSelectedWeekEnding.rawWeekEnding)">
+                        </select>
+                        <br><br>
+                        <div ng-controller='CourseController'>
+                            <nvd3 options='optionsForGitHubCourseCommits' data='dataForGitHubCourseCommits'></nvd3>
+                        <h3>GitHub Course Average Weight Activity</h3><br>
+                            <nvd3 options='optionsForGitHubCourseWeight' data='dataForGitHubCourseWeight'></nvd3>
+                        </div>
+                    </div>
+                    <div ng-if="isSet(4)">
+                        <h2>Slack Data</h2>
+                        <br>
+                        <h3>Average Message Totals</h3><br>
+                        <label style="color: black">Select Start Date: </label>
+                        <select class="select_style"  ng-model="SlackSelectedWeekBeginning" ng-options="x.weekBeginning for x in slackCourseIntervals"
+                                ng-change="slackIntervalChangedBegin(SlackSelectedWeekBeginning.rawWeekBeginning)">
+                        </select>
+                        <br>
+                        <label style="color: black">Select End Date: </label>
+                        <select class="select_style"  ng-model="SlackSelectedWeekEnding" ng-options="x.weekEnding for x in slackCourseIntervals"
+                                ng-change="slackIntervalChangedEnd(SlackSelectedWeekEnding.rawWeekEnding)">
+                        </select>
+                        <br><br>
+                        <div ng-controller='CourseController'>
+                            <nvd3 options='optionsForSlackCourseMessages' data='dataForSlackCourseMessages'></nvd3>
+                       <!-- </div>
+                        <div afterRender='fireRefreshEventOnWindow()' ng-controller='CourseController'>
+                           --> <h3>Average Message Activity</h3><br>
+                            <nvd3 options='optionsForSlackCourseActivity' data='dataForSlackCourseActivity'></nvd3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

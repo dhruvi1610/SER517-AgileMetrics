@@ -1,0 +1,35 @@
+<div class="well page">
+    <h1 class="page-header">Agile Tool Admin Page</h1>
+    <style>
+        table, td {
+            border: 1px solid grey;
+            border-collapse: collapse;
+            padding: 5px;
+        }
+    </style>
+    <div ng-controller="AgileToolAdmin">
+        <div>
+            <form ng-submit="updateTaigaTaskTotals()">
+                <button type="submit" class="btn btn-primary">Manual Update Taiga Task Totals</button>
+            </form>
+            <form ng-submit="updateGitHubCommitWeight()">
+                <button type="submit" class="btn btn-primary">Manual Update GitHub Commit-Weight</button>
+            </form>
+            <form ng-submit="updateSlackMessageTotals()">
+                <button type="submit" class="btn btn-primary">Manual Update Slack Message Totals</button>
+            </form>
+            <form ng-submit="updateSlackUsers()">
+                <button type="submit" class="btn btn-primary"> Manual Update Slack Users</button>
+            </form>
+            <form ng-submit="updateTaigaMemberships()">
+                <button type="submit" class="btn btn-primary"> Manual Update Taiga Memberships</button>
+            </form>
+            <form ng-submit="updateTaigaProjects()">
+                <button type="submit" class="btn btn-primary"> Manual Update Taiga Projects</button>
+            </form>
+        </div>
+        <br>
+        <br>
+        <br>
+    </div>
+</div>

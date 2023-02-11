@@ -1,0 +1,122 @@
+<div ng-controller="newCourseStudents">
+    <div class="well page">
+        <h1 class="page-header">CAssess Provisioning</h1>
+        <div class="container" style="width: inherit;">
+            <div class="row">
+                <div class="col-md-1" style="margin-right: 20px;">
+                    <ul class="nav nav-pills navbar-nav navbar-left nav-stacked">
+                        <li >
+                            <a href="#/create_course" access="super_user" ng-click="setTab(1)">Course</a>
+                        </li>
+                        <li>
+                            <a href="#/create_admins" access="super_user" ng-click="setTab(2)">Admins</a>
+                        </li>
+                        <li >
+                            <a href="#/create_teams" access="super_user" ng-click="setTab(3)">Teams</a>
+                        </li>
+                        <li ng-class="{ active: isSet(4) }">
+                            <a href="#/create_students" access="super_user" ng-click="setTab(4)">Students</a>
+                        </li>
+                        <li >
+                            <a href="#/create_channels" access="super_user" ng-click="setTab(5)">Slack Channels</a>
+                        </li>
+                        <li >
+                            <a href="#/provision_course" access="super_user" ng-click="setTab(6)">Provision Course</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-8">
+                    <div class="jumbotron">
+                        <div class="form-group">
+                            <div>
+                                <p>Message: {{message}}</p>
+                            </div>
+                            <br>
+                            <h3>Select Team to Manage Students</h3>
+                            <div>
+                                <select ng-model="selectedTeam" class="form-control" ng-options="team.team_name for team in teams" ng-change="setTeam()" placeholder="Select Team">
+                                </select>
+                            </div>
+                            <div>
+                                <table class="table table-bordered table-striped" style="width:100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="3">
+                                                <div class="pull-left">Select Student to manage or add new Student</div>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Password</th>
+                                            <th>GitHub User</th>
+                                            <th>Taiga User</th>
+                                            <th>Slack User</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="overflow-y: scroll; max-height:200px;">
+                                        <tr ng-repeat="student in students" ng-click="setClickedStudent($index)" ng-class="{'selected':$index === selectedRow}">
+                                            <td style="width:21%; word-break: break-all;">{{student.full_name}}</td>
+                                            <td style="width:20%; word-break: break-all;">{{student.email}}</td>
+                                            <td style="width:20%; word-break: break-all;">{{student.password}}</td>
+                                            <td style="width:13%; word-break: break-all;">{{student.github_username}}</td>
+                                            <td style="width:13%; word-break: break-all;">{{student.taiga_username}}</td>
+                                            <td style="width:13%; word-break: break-all;">{{student.slack_username}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="container" style="max-width:600px;margin:60px auto;">
+                            <form role="form">
+                                <div class="form-group">
+                                    <label>Student Name</label>
+                                    <input type="text" class="form-control" ng-model="enteredName" placeholder="Enter name" ng-required="true">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" class="form-control" ng-model="enteredEmail" placeholder="Enter email" ng-required="true">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" class="form-control"ng-model="enteredPassword" placeholder="Enter password" ng-required="true">
+                                </div>
+                                <div class="form-group">
+                                    <label>GitHub Username</label>
+                                    <input type="text" class="form-control"ng-model="enteredGitHubUsername" placeholder="Enter GitHub Username" ng-required="true">
+                                </div>
+                                <div class="form-group">
+                                    <label>Taiga Username</label>
+                                    <input type="text" class="form-control"ng-model="enteredTaigaUsername" placeholder="Enter Taiga Username" ng-required="true">
+                                </div>
+                                <div class="form-group">
+                                    <label>Slack Username</label>
+                                    <input type="text" class="form-control"ng-model="enteredSlackUsername" placeholder="Enter Slack Username" ng-required="false">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="col-md-1 pull-right">
+                    <ul class="nav navbar-nav navbar-right nav-stacked">
+                        <div>
+                            <button ng-click="removeStudent()" class="btn btn-primary">Remove Student</button>
+                        </div>
+                        <div>
+                            <button ng-click="editStudent()" class="btn btn-primary">Edit Student</button>
+                        </div>
+                        <div>
+                            <button ng-click="saveStudent()" class="btn btn-primary">Save Student</button>
+                        </div>
+                        <br>
+                        <div>
+                            <label class="btn btn-primary">Students CSV Upload
+                                <input type="file" name="file" onchange="angular.element(this).scope().handleFiles(this.files)" accept=".csv" style="display:none">
+                            </label>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,171 @@
+.selected {
+    color:blue;
+    font-weight:bold;
+}
+
+.dashed {
+    stroke-dasharray: 5,5;
+}
+
+.fade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    opacity: 1;
+}
+
+.fade.ng-enter,
+.fade.ng-leave {
+    -webkit-transition: all 1s ease;
+    transition: all 0.5s ease;
+}
+
+.fade.ng-enter {
+    opacity: 0;
+}
+
+.fade.ng-enter-active {
+    opacity: 1;
+}
+
+.fade.ng-leave {
+    opacity: 1;
+}
+
+.fade.ng-leave-active {
+    opacity: 0;
+}
+
+.profile-image {
+    width: 30px;
+    margin-top: -5px;
+    margin-bottom: -5px;
+}
+
+.bg-extended {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #ddd;
+    min-width: 100%;
+    height: 100%;
+    display: table;
+}
+
+.align-vertical-center {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.well-heading {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 120px;
+}
+
+.well-heading h1 {
+    color: #FFF;
+    position: absolute;
+    bottom: 10px;
+    padding-left: 35px;
+}
+
+.well-body {
+    margin: 150px 30px 30px 30px;
+}
+
+.three-dots-row-spinner {
+    background-color: #009688;
+    width: 50px;
+    height: 50px;
+}
+
+.social-icons {
+    margin: 20px;
+}
+
+.social-icons a {
+    margin-right: 5px;
+}
+
+.social-icons .fa-linkedin {
+    color: #0085AE;
+}
+
+.social-icons .fa-github {
+    color: #070709;
+}
+
+.social-icons .fa-twitter {
+    color: #32CCFE;
+}
+
+.social-icons .fa-wordpress {
+    color: #21759b;
+}
+
+.mat-icon {
+    font-size: inherit;
+}
+
+.select_style {
+    background: #FFF;
+    overflow: hidden;
+    display: inline-block;
+    color: #525252;
+    font-weight: 300;
+    -webkit-border-radius: 5px 4px 4px 5px/5px 5px 4px 4px;
+    -moz-border-radius: 5px 4px 4px 5px/5px 5px 4px 4px;
+    border-radius: 5px 4px 4px 5px/5px 5px 4px 4px;
+    -webkit-box-shadow: 0 0 5px rgba(123, 123, 123, 0.2);
+    -moz-box-shadow: 0 0 5px rgba(123,123,123,.2);
+    box-shadow: 0 0 5px rgba(123, 123, 123, 0.2);
+    border: solid 1px #DADADA;
+    font-family: "helvetica neue",arial;
+    position: relative;
+    cursor: pointer;
+    padding-right:20px;
+}
+.select_style span {
+    position: absolute;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: url(http://projects.authenticstyle.co.uk/niceselect/arrow.png) no-repeat;
+    top: 50%;
+    margin-top: -4px;
+}
+.select_style select {
+    -webkit-appearance: none;
+    appearance:none;
+    width:120%;
+    background:none;
+    background:transparent;
+    border:none;
+    outline:none;
+    cursor:pointer;
+    padding:7px 10px;
+}
+
+.polarwrapper {
+    padding: 0px;
+    width: 900px;
+    overflow: auto;
+}
+.polarone {
+    margin: 0 0px 0px 0;
+    float: left;
+    height: 400px;
+    width: 300px;
+}
+.polartwo {
+    margin: 0 0px 0px 0;
+    float: right;
+    height: 400px;
+    width: 300px;
+}
+

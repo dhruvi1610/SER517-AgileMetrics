@@ -1,0 +1,74 @@
+<div class="well page">
+
+    <h3>User Management</h3>
+
+    <li access="super_user"><a href="#/register">Register New User</a></li>
+
+    <div class="form-group">
+        <div class="input-group">
+            <span class="input-group-addon glyphicon glyphicon-search"></span>
+            <input type="text" id="addon3a" class="form-control" placeholder="Search for" ng-model="query">
+        </div>
+    </div>
+
+
+    <div id="userListSuper" access="super_user" style="overflow-y: scroll; max-height:1000px;">
+        <div class="panel panel-primary" >
+            <div class="panel-heading">User List</div>
+                <form role="form">
+                    <div class="form-group">
+
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <div ng-repeat="user in usersSuper | filter:query" class="list-group-item" style="margin-top:16px">
+                                    <div class="row-picture glyphicon-user" alt="icon">
+                                    </div>
+                                    <div class="row-content">
+                                        <h4 class="list-group-item-heading">{{user.firstName}} {{user.familyName}}</h4>
+
+                                        <h5 class="list-group-item-text"><i class="glyphicon glyphicon-envelope"></i> {{user.email}}
+                                        </h5>
+                                        <h5 class="list-group-item-text"><i class="glyphicon glyphicon-lock"></i>
+                                            {{user.authorities[0].name}}
+                                        </h5>
+                                        <li ng-click="viewProfileSuper(user.email, user.authorities[0].name)">
+                                            <button type="submit" class="btn pull-right">View Profile</button>
+                                        </li>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+    </div>
+    <div class="panel panel-primary" access="admin">
+        <div class="panel-heading">User List</div>
+            <h3>Select Course</h3>
+            <select class="select_style" ng-model="adminCourse.value" ng-options="x.course for x in courses"
+                    ng-change="selectedCourseChanged()" access="admin">
+            </select>
+        <div id="userListAdmin" access="admin" style="overflow-y: scroll; max-height:1000px;">
+            <div class="list-group">
+                <div class="list-group-item">
+                    <div ng-repeat="user in usersAdmin | filter:query" class="list-group-item" style="margin-top:16px">
+                        <div class="row-picture glyphicon-user" alt="icon">
+                        </div>
+                        <div class="row-content">
+                            <h4 class="list-group-item-heading">{{user.full_name}}</h4>
+
+                            <h5 class="list-group-item-text"><i class="glyphicon glyphicon-envelope"></i> {{user.email}}
+                            </h5>
+                            <h5 class="list-group-item-text"><i class="glyphicon glyphicon-lock"></i>
+                                {{user.team_name}}
+                            </h5>
+                            <li ng-click="viewProfileAdmin(user.email, user.authorities[0].name)">
+                                <button type="submit" class="btn pull-right">View Profile</button>
+                            </li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,129 @@
+<div class="well well-lg page" style="width:100%" ng-controller="newCourseTeams">
+    <h1 class="page-header">CAssess Provisioning</h1>
+    <div class="container" style="width: inherit;">
+        <div class="row">
+            <div class="col-md-1" style="margin-right: 20px;">
+                <ul class="nav nav-pills navbar-nav navbar-left nav-stacked">
+                    <li >
+                        <a href="#/create_course" access="super_user" ng-click="setTab(1)">Course</a>
+                    </li>
+                    <li >
+                        <a href="#/create_admins" access="super_user" ng-click="setTab(2)">Admins</a>
+                    </li>
+                    <li ng-class="{ active: isSet(3) }">
+                        <a href="#/create_teams" access="super_user" ng-click="setTab(3)">Teams</a>
+                    </li>
+                    <li >
+                        <a href="#/create_students" access="super_user" ng-click="setTab(4)">Students</a>
+                    </li>
+                    <li >
+                        <a href="#/create_channels" access="super_user" ng-click="setTab(5)">Slack Channels</a>
+                    </li>
+                    <li >
+                        <a href="#/provision_course" access="super_user" ng-click="setTab(6)">Provision Course</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-8">
+                <div class="jumbotron" style="width:100%">
+                    <div class="form-group">
+                        <div>
+                            <p>Message: {{message}}</p>
+                        </div>
+                        <div>
+                            <label>Select Team to manage or add new Team</label>
+                            <table class="table table-bordered table-striped" style="border-collapse:collapse; width:97.5%; table-layout:fixed; margin-bottom:0px;">
+                                <tr>
+                                    <th style="width:5%; overflow:hidden; white-space: nowrap;"><span>TG</span></th>
+                                    <th style="width:5%; overflow:hidden; white-space: nowrap;"><span>GH</span></th>
+                                    <th style="width:15%; white-space: nowrap;">Team Name</th>
+                                    <th style="width:20%; white-space: nowrap;">Taiga Slug</th>
+                                    <th style="width:15%;">GitHub Owner</th>
+                                    <th style="width:15%; white-space: nowrap;">GitHub Repo</th>
+                                    <th style="width:20%; white-space: nowrap;">GitHub Token</th>
+                                </tr>
+                            </table>
+                            <div style="overflow-y: scroll; max-height:200px;  margin-top:0px;">
+                                <table class="table table-bordered table-striped" style="border-collapse:collapse; width:100%; table-layout:fixed; margin-top:0px;">
+                                    <tbody>
+                                        <tr ng-repeat="team in teams" ng-click="setClickedTeam($index)" ng-class="{'selected':$index == selectedRow}">
+                                            <td style="width:5%; height: 20px; overflow:hidden;">
+                                                <span ng-hide={{team.hideTaigaOk}} class="ng-hide glyphicon glyphicon-ok" style="color:green;" align="center"></span>
+                                                <span ng-hide={{team.hideTaigaRemove}} class="ng-hide glyphicon glyphicon-remove" style="color:red;" align="center"></span>
+                                            </td>
+                                            <td style="width:5%; height: 20px; overflow:hidden;">
+                                                <span ng-hide={{team.hideGitHubOk}} class="ng-hide glyphicon glyphicon-ok" style="color:green;" align="center"></span>
+                                                <span ng-hide={{team.hideGitHubRemove}} class="ng-hide glyphicon glyphicon-remove" style="color:red;" align="center"></span>
+                                            </td>
+                                            <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.team_name}}</td>
+                                            <td style="width:20%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.taiga_project_slug}}</td>
+                                            <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.github_owner}}</td>
+                                            <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.github_repo_id}}</td>
+                                            <td style="width:20%; height: 20px; word-break: break-all; overflow:hidden; text-overflow: ellipsis;">{{team.github_token}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="container" style="max-width:600px;margin:auto;">
+                            <form role="form">
+                                <div class="form-group">
+                                    <label>Team Name</label>
+                                    <input type="text" class="form-control" ng-model="enteredTeamName" placeholder="Enter team name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Taiga Project Slug</label>
+                                    <input type="text" class="form-control" ng-model="enteredTaigaSlug" placeholder="Enter Taiga Slug" ng-required="true" ng-change="setTaigaUnverified()">
+                                    <button ng-click="verifyTaiga()" class="btn btn-primary">Verify Taiga</button>
+                                    <span ng-show="taigaVerified" class="ng-hide glyphicon glyphicon-ok" style="color:green;">Verified</span>
+                                    <span ng-show="taigaNotVerified" class="ng-hide glyphicon glyphicon-remove" style="color:red;">Unverified</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>GitHub Owner</label>
+                                    <input type="text" class="form-control"ng-model="enteredGitHubOwner" placeholder="Enter GitHub owner" ng-required="true" ng-change="setGitHubUnverified()">
+                                </div>
+                                <div class="form-group">
+                                    <label>GitHub Repo Id</label>
+                                    <input type="text" class="form-control"ng-model="enteredGitHubRepo" placeholder="Enter GitHub Repo Id" ng-required="true" ng-change="setGitHubUnverified()">
+                                </div>
+                                <div class="form-group">
+                                    <label>GitHub Token</label>
+                                    <input type="text" class="form-control"ng-model="enteredGitHubToken" placeholder="Enter GitHub token" ng-required="true" ng-change="setGitHubUnverified()">
+                                    <button ng-click="verifyGitHub()" class="btn btn-primary">Verify GitHub</button>
+                                    <span ng-show="gitHubVerified" class="ng-hide glyphicon glyphicon-ok" style="color:green;">Verified</span>
+                                    <span ng-show="gitHubNotVerified" class="ng-hide glyphicon glyphicon-remove" style="color:red;">Unverified</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Slack Team Id</label>
+                                    <input type="text" class="form-control"ng-model="enteredSlackTeam" placeholder="Enter Slack Team" ng-required="false">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 pull-right">
+                <ul class="nav navbar-nav navbar-right nav-stacked">
+                    <div>
+                        <button ng-really-message="Remove Team?"? ng-really-click="removeTeam()" class="btn btn-primary">Remove Team</button>
+                    </div>
+                    <div>
+                        <button ng-click="editTeam()" class="btn btn-primary">Edit Team</button>
+                    </div>
+                    <div>
+                        <button ng-click="clearTeamForm()" class="btn btn-primary">Clear Form</button>
+                    </div>
+                    <div>
+                        <button id="saveTeam" ng-click="saveTeam()" class="btn btn-primary">Save Team</button>
+                    </div>
+                    <br>
+                    <div>
+                        <label class="btn btn-primary">Teams CSV Upload
+                            <input type="file" name="file" onchange="angular.element(this).scope().handleFiles(this.files)" accept=".csv" style="display:none">
+                        </label>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
