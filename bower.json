@@ -11,7 +11,6 @@
     "angular-spinkit": "0.3.3",
     "angular-http-auth": "1.2.2",
     "bootstrap": "3.3.5",
-    "bootstrap-material-design": "0.4.4",
     "angular-swagger-ui": "~0.2.3",
     "font-awesome": "4.5.0",
     "angular-password": "1.0.3",
@@ -25,12 +24,6 @@
         "dist/css/bootstrap.css",
         "dist/js/bootstrap.js"
       ]
-    },
-    "bootstrap-material-design": {
-      "dependencies": {
-        "jquery": "~2.1.1",
-        "bootstrap": "~3.3.5"
-      }
     },
     "angular-http-auth": {
       "dependencies": {
