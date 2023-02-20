@@ -199,12 +199,15 @@
             <version>${org.springframework-version}</version>
             <scope>test</scope>
         </dependency>
-        
+
+        <!-- https://mvnrepository.com/artifact/org.springframework/spring-webmvc -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>${org.springframework-version}</version>
+            <version>5.3.18</version>
         </dependency>
+
+
 
         <dependency>
         	<groupId>mysql</groupId>
