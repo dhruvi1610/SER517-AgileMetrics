@@ -1,0 +1,9 @@
+curl --location --request POST 'curl --location --request POST 'https://api.taiga.io/api/v1/auth' \
+body 
+	{
+    "type": "normal",
+    "username": "sbaktha1@asu.edu" ,
+    "password": "Nakutelidu@1"
+
+
+}
