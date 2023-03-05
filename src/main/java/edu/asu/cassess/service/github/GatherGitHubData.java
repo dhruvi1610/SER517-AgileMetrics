@@ -77,7 +77,9 @@ public class GatherGitHubData implements IGatherGitHubData {
         Course tempCourse = (Course) courseService.read(course);
         java.util.Date current = new java.util.Date();
         try {
-            current = new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(new java.util.Date()));
+            //current = new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(new java.util.Date()));
+            current = new SimpleDateFormat("yyyy-mm-dd").parse(LocalDate.now().toString());
+
         } catch (ParseException e) {
             e.printStackTrace();
         }
