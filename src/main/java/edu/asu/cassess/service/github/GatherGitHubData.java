@@ -18,6 +18,7 @@ import edu.asu.cassess.persist.repo.github.GitHubWeightRepo;
 import edu.asu.cassess.service.rest.CourseService;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IStudentsService;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -75,11 +76,9 @@ public class GatherGitHubData implements IGatherGitHubData {
     public void fetchData(String owner, String projectName, String course, String team, String accessToken) {
         if (courseService == null) courseService = new CourseService();
         Course tempCourse = (Course) courseService.read(course);
-        java.util.Date current = new java.util.Date();
+        Date current = new Date();
         try {
-            //current = new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(new java.util.Date()));
             current = new SimpleDateFormat("yyyy-mm-dd").parse(LocalDate.now().toString());
-
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -88,7 +87,7 @@ public class GatherGitHubData implements IGatherGitHubData {
         if (current.before(tempCourse.getEnd_date())) {
             this.projectName = projectName;
             this.owner = owner;
-            url = "https://api.github.com/repos/" + owner + "/" + projectName + "/";
+            url = "https://api.github.com/repos/" + owner + "/" + projectName;
             getStats(course, team, accessToken, tempCourse);
         } else {
             ///System.out.println("*****************************************************Course Ended, no GH data Gathering");
@@ -105,13 +104,18 @@ public class GatherGitHubData implements IGatherGitHubData {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + "stats/contributors")
-                .queryParam("access_token", accessToken + "&scope=&token_type=bearer");
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + "/stats/contributors");
+//                .queryParam("access_token", accessToken + "&scope=&token_type=bearer");
         String urlPath = builder.build().toUriString();
 
         //System.out.println("GitHub URL: " + urlPath);
 
-        String json = restTemplate.getForObject(urlPath, String.class);
+        String json = "";
+        try {
+            json = restTemplate.getForObject(urlPath, String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //System.out.println("Read as String");
 
@@ -119,7 +123,7 @@ public class GatherGitHubData implements IGatherGitHubData {
 
         System.out.println("contributors initialized");
 
-        if(!json.startsWith("{}")) {
+        if(!json.isEmpty() && !json.startsWith("{}")) {
 
             try {
                 contributors = mapper.readValue(json, new TypeReference<List<GitHubContributors>>() {
