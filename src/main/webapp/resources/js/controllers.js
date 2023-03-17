@@ -2608,6 +2608,66 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             return data;
         }
 
+        $scope.optionsForTaigaTeamTasks = {
+
+                    chart: {
+                        type: 'multiBarChart',
+                        height: 450,
+                        margin : {
+                            top: 50,
+                            right: 150,
+                            bottom: 100,
+                            left:100
+                        },
+
+                        x: function(d){ return d[0]; },
+                        y: function(d){ return d[1]; },
+
+                        clipEdge: true,
+                        duration: 500,
+                        stacked: false,
+
+                        xAxis: {
+                            axisLabel: 'Date of Activity',
+                            showMaxMin: false
+                        },
+
+                        yAxis: {
+                            axisLabel: 'Taiga Task Totals',
+                            axisLabelDistance: 0
+                        }
+                    }
+                };
+
+                function getDataForTaigaTeamTasks(array){
+
+                    var data = []; var inProgress = []; var toTest = []; var done =[];
+
+                    for (var i = 0; i < array.length; i++){
+
+                        var valueset1 = [];var valueset2 = [];var valueset3 = [];
+
+                        valueset1.push(array[i].date);
+                        valueset1.push(array[i].inProgress);
+
+                        valueset2.push(array[i].date);
+                        valueset2.push(array[i].toTest);
+
+                        valueset3.push(array[i].date);
+                        valueset3.push(array[i].done);
+
+                        inProgress.push(valueset1);
+                        toTest.push(valueset2);
+                        done.push(valueset3);
+                    }
+
+                    data.push({color: "#6799ee", key: "IN PROGRESS", values: inProgress});
+                    data.push({color: "#000000", key: "READY FOR TEST", values: toTest});
+                    data.push({color: "#2E8B57", key: "CLOSED", values: done});
+
+                    return data;
+                }
+
         function getTaigaActivity() {
             $scope.taigaMaxY = 0;
             $http({
@@ -4866,12 +4926,14 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     if($scope.enteredGitHubRepo != '' || $scope.enteredGitHubRepo != null) {
                         if ($scope.enteredGitHubToken  != '' || $scope.enteredGitHubToken != null) {
                             var gitHubUrl = "https://api.github.com/repos/" + $scope.enteredGitHubOwner + "/"
-                                + $scope.enteredGitHubRepo + "/stats/contributors?access_token=" + $scope.enteredGitHubToken
-                                + "&scope=&token_type=bearer";
+                                + $scope.enteredGitHubRepo + "/stats/contributors";
                             $http({
                                 url: gitHubUrl,
                                 method: "GET",
-                                headers: {'Content-Type': 'application/json; charset=utf-8'}
+                                headers: {
+                                  'Content-Type': 'application/json; charset=utf-8',
+                                  'Authorization': 'Bearer ' + $scope.enteredGitHubToken
+                                }
                             }).then(function (response) {
                                 //console.log("Worked!");
                                 $scope.message = "GitHub Success: " + response.status;
