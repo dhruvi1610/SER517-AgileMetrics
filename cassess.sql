@@ -273,7 +273,23 @@ CREATE TABLE `github_ag` (
   `ag_result` mediumtext
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+--
+-- Table structure for table `taiga_sprint`
+--
 
+create table taiga_sprint (
+  project_id bigint,
+  sprint_id int,
+  course_name varchar(255),
+  team_name varchar(255),
+  sprint_name varchar(255),
+  is_closed int,
+  estimated_start date,
+  estimated_finish date,
+  primary key (sprint_id),
+  foreign key (course_name) references courses(course),
+  foreign key (team_name) references teams(team_name)
+);
 --
 -- Dumping data for table `github_ag`
 --
