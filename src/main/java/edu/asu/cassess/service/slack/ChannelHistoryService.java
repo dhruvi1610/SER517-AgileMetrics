@@ -51,12 +51,7 @@ public class ChannelHistoryService implements IChannelHistoryService {
 
     public ChannelHistoryService() {
         restTemplate = new RestTemplate();
-
-        //non-private slack channel history URL
-        channelHistoryURL = "https://slack.com/api/channels.history";
-
-        //private slack channel history URL
-        groupHistoryURL = "https://slack.com/api/groups.history";
+        channelHistoryURL = "https://slack.com/api/conversations.history";
     }
 
     @Override
