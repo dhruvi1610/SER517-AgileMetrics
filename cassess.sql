@@ -112,10 +112,25 @@ CREATE TABLE `channelobject_previous_names` (
 -- Dumping data for table `channelobject_previous_names`
 --
 
+--
+-- Table structure for table `channelobject_previous_names`
+
 LOCK TABLES `channelobject_previous_names` WRITE;
 /*!40000 ALTER TABLE `channelobject_previous_names` DISABLE KEYS */;
 /*!40000 ALTER TABLE `channelobject_previous_names` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
+--Table structure for table `taiga_sprint_days`
+DROP TABLE IF EXISTS `taiga_sprint_days`;
+create table taiga_sprint_days (
+  sprint_id int,
+  date date,
+  actual_points double,
+  estimated_points double,
+  primary key (sprint_id, date),
+  foreign key (sprint_id) references taiga_sprint(sprint_id)
+);
 
 --
 -- Table structure for table `channels`
