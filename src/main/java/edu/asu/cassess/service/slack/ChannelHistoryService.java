@@ -6,6 +6,7 @@ import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.slack.*;
 import edu.asu.cassess.persist.repo.slack.SlackMessageTotalsRepo;
 import edu.asu.cassess.service.rest.*;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class ChannelHistoryService implements IChannelHistoryService {
     }
 
     @Override
-    public MessageList getPublicMessages(String channel, String token, long unixOldest, long unixCurrent) {
+    public MessageList getSlackMessages(String channel, String token, long unixOldest, long unixCurrent) {
 
         long nextUnixCurrent = 0;
 
@@ -64,15 +65,15 @@ public class ChannelHistoryService implements IChannelHistoryService {
         //System.out.println("----------------------------**********************************************=========UnixOldest: " + unixOldest);
 
         HttpHeaders headers = new HttpHeaders();
-
+        headers.setBearerAuth(token);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         //System.out.println("Page: " + page);
 
         HttpEntity<String> request = new HttpEntity<>(headers);
 
-        ResponseEntity<MessageList> messageList = restTemplate.getForEntity(channelHistoryURL + "?token=" + token + "&channel=" + channel +
-                "&oldest=" + unixOldest + "&latest=" + unixCurrent, MessageList.class, request);
+        ResponseEntity<MessageList> messageList = restTemplate.exchange(channelHistoryURL + "?channel=" + channel + "&oldest=" + unixOldest + "&latest=" + unixCurrent,
+            HttpMethod.GET, request, MessageList.class);
 
         System.out.println(messageList.getBody());
 
@@ -80,89 +81,31 @@ public class ChannelHistoryService implements IChannelHistoryService {
 
         System.out.println(messageList.getBody());
 
-        int index = 0;
-        for(SlackMessage slackMessage:slackMessages){
-            //System.out.println("----------------------------**********************************************=========Ts: " + slackMessage.getTs());
-            //System.out.println("----------------------------**********************************************=========User: " + slackMessage.getUser());
+        if(slackMessages != null) {
+            int index = 0;
+            for (SlackMessage slackMessage : slackMessages) {
 
-            if(slackMessage.getText().length() > 20) {
-                MutableInt count = countsMap.get(slackMessage.getUser());
-                if (count == null) {
-                    countsMap.put(slackMessage.getUser(), new MutableInt());
-                } else {
-                    count.increment();
+                if (slackMessage.getText().length() > 10) {
+                    MutableInt count = countsMap.get(slackMessage.getUser());
+                    if (count == null) {
+                        countsMap.put(slackMessage.getUser(), new MutableInt());
+                    } else {
+                        count.increment();
+                    }
                 }
-            }
 
-            //slackMessageRepo.save(slackMessage);
-            index++;
-            if(index == (slackMessages.length -1)){
-                nextUnixCurrent = (long) Math.floor(slackMessage.getTs());
-                //System.out.println("----------------------------**********************************************=========NextUnixCurrent: " + nextUnixCurrent);
+                //slackMessageRepo.save(slackMessage);
+                index++;
+                if (index == (slackMessages.length - 1)) {
+                    nextUnixCurrent = (long) Math.floor(slackMessage.getTs());
+                }
             }
         }
 
         //System.out.println("----------------------------**********************************************=========has_more: " + messageList.getBody().isHas_more());
 
         if (messageList.getBody().isHas_more()) {
-            return getPublicMessages(channel, token, unixOldest, nextUnixCurrent);
-        } else {
-            return messageList.getBody();
-        }
-    }
-
-    @Override
-    public MessageList getPrivateMessages(String channel, String token, long unixOldest, long unixCurrent) {
-
-        long nextUnixCurrent = 0;
-
-        //System.out.println("----------------------------**********************************************=========UnixCurrent: " + unixCurrent);
-
-        //System.out.println("----------------------------**********************************************=========UnixOldest: " + unixOldest);
-
-        HttpHeaders headers = new HttpHeaders();
-
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        //System.out.println("Page: " + page);
-
-        HttpEntity<String> request = new HttpEntity<>(headers);
-
-        ResponseEntity<MessageList> messageList = restTemplate.getForEntity(groupHistoryURL + "?token=" + token + "&channel=" + channel +
-                "&oldest=" + unixOldest + "&latest=" + unixCurrent, MessageList.class, request);
-
-        System.out.println(messageList.getBody());
-
-        SlackMessage[] slackMessages = messageList.getBody().getMessages();
-
-        System.out.println(messageList.getBody());
-
-        int index = 0;
-        for(SlackMessage slackMessage:slackMessages){
-            //System.out.println("----------------------------**********************************************=========Ts: " + slackMessage.getTs());
-            //System.out.println("----------------------------**********************************************=========User: " + slackMessage.getUser());
-
-            if(slackMessage.getText().length() > 20) {
-                MutableInt count = countsMap.get(slackMessage.getUser());
-                if (count == null) {
-                    countsMap.put(slackMessage.getUser(), new MutableInt());
-                } else {
-                    count.increment();
-                }
-            }
-
-            //slackMessageRepo.save(slackMessage);
-            index++;
-            if(index == (slackMessages.length -1)){
-                nextUnixCurrent = (long) Math.floor(slackMessage.getTs());
-                //System.out.println("----------------------------**********************************************=========NextUnixCurrent: " + nextUnixCurrent);
-            }
-        }
-
-        //System.out.println("----------------------------**********************************************=========has_more: " + messageList.getBody().isHas_more());
-
-        if (messageList.getBody().isHas_more()) {
-            return getPrivateMessages(channel, token, unixOldest, nextUnixCurrent);
+            return getSlackMessages(channel, token, unixOldest, nextUnixCurrent);
         } else {
             return messageList.getBody();
         }
@@ -184,7 +127,7 @@ public class ChannelHistoryService implements IChannelHistoryService {
                     //int messageCount = slackMessageQueryDao.getMessageCount(userObject.getId());
                     if (student.getEnabled() != null) {
                         if (student.getEnabled() != false) {
-                            slackMessageTotalsRepo.save(new SlackMessageTotals(new MessageTotalsID(userObject.getProfile().getEmail(), channelID), userObject.getProfile().getReal_name(), student.getTeam_name(), course, messageCount, student.getSlack_username()));
+                            slackMessageTotalsRepo.save(new SlackMessageTotals(new MessageTotalsID(student.getEmail(), channelID), userObject.getProfile().getReal_name(), student.getTeam_name(), course, messageCount, student.getSlack_username()));
                         }
                     }
                 }
@@ -207,7 +150,7 @@ public class ChannelHistoryService implements IChannelHistoryService {
         Course tempCourse = (Course) courseService.read(course);
         java.util.Date current = new java.util.Date();
         try {
-            current = new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(new java.util.Date()));
+            current = new SimpleDateFormat("yyyy-mm-dd").parse(LocalDate.now().toString());
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -220,17 +163,11 @@ public class ChannelHistoryService implements IChannelHistoryService {
                     List<Channel> channels = channelService.listReadByTeam(team.getTeam_name(), course);
                     for (Channel channel : channels) {
                         //System.out.println("Channel: " + channel.getId());
-                        if(channel.getId().startsWith("C")){
-                            getPublicMessages(channel.getId(), token, unixOldest, unixCurrent);
+                        if(channel.getId() != null){
+                            getSlackMessages(channel.getId(), token, unixOldest, unixCurrent);
                             getMessageTotals(channel.getId(), course, team.getTeam_name());
                             countsMap.clear();
                         }
-                        if(channel.getId().startsWith("G")){
-                            getPrivateMessages(channel.getId(), token, unixOldest, unixCurrent);
-                            getMessageTotals(channel.getId(), course, team.getTeam_name());
-                            countsMap.clear();
-                        }
-
                     }
                 }
             }
