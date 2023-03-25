@@ -50,6 +50,7 @@ public class TaskController {
 	}
 
     @Scheduled(cron = "${github.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void GitHubCommits() {
         List<Team> teams = teamsService.listReadAll();
         for(Team team: teams){
@@ -64,6 +65,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${slack.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void SlackMessages() {
     List<CourseList> courseList = coursesService.listGetCourses();
         for (CourseList course : courseList) {
@@ -73,6 +75,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");

@@ -148,7 +148,7 @@ public class ChannelHistoryService implements IChannelHistoryService {
         long unixCurrent = System.currentTimeMillis() / 1000L;
         if (courseService == null) courseService = new CourseService();
         Course tempCourse = (Course) courseService.read(course);
-        java.util.Date current = new java.util.Date();
+        Date current = new Date();
         try {
             current = new SimpleDateFormat("yyyy-mm-dd").parse(LocalDate.now().toString());
         } catch (ParseException e) {

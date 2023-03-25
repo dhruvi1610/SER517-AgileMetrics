@@ -1,5 +1,6 @@
 package edu.asu.cassess.service.taiga;
 
+import edu.asu.cassess.dto.ProjectCourseDto;
 import edu.asu.cassess.dto.sprint.AllSprintsDto;
 import edu.asu.cassess.dto.sprint.SprintDaysDto;
 import edu.asu.cassess.dto.sprint.SprintDto;
@@ -62,7 +63,27 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
     fetchAndPersistProjectSprints(projectCourseDtos, true);
   }
 
+  private void fetchAndPersistProjectSprints(List<ProjectCourseDto> projectCourseDtos, boolean isUpdateActiveSprints) {
+    for (ProjectCourseDto projectCourseDto: projectCourseDtos) {
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(projectCourseDto.getTaigaToken());
+      HttpEntity<String> request = new HttpEntity<>(headers);
+      ResponseEntity<AllSprintsDto[]> responseEntity = null;
+      try {
+        responseEntity = restTemplate.exchange(BASE_URL + "?project=" + projectCourseDto.getProjectId(), HttpMethod.GET, request, AllSprintsDto[].class);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
+      if(responseEntity != null && responseEntity.getBody() != null) {
+        List<AllSprintsDto> allSprints = Arrays.asList(responseEntity.getBody());
+        if(isUpdateActiveSprints) {
+          allSprints = allSprints.stream().filter(item -> !item.getIsClosed()).collect(Collectors.toList());
+        }
+        persistTaigaSprintsDetails(projectCourseDto, request, allSprints);
+      }
+    }
+  }
 
   private void persistTaigaSprintsDetails(ProjectCourseDto projectCourseDto, HttpEntity<String> request, List<AllSprintsDto> allSprints) {
     List<TaigaSprint> taigaSprints = new ArrayList<>();

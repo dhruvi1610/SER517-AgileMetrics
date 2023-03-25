@@ -21,6 +21,7 @@ dependencies {
     implementation 'org.springframework.data:spring-data-jpa:1.6.6.RELEASE'
     implementation 'org.springframework:spring-core:5.1.9.RELEASE'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.3.0-rc1'
     implementation 'org.springframework.security:spring-security-web:5.3.0.RELEASE'
     implementation 'org.springframework.security:spring-security-config:5.3.0.RELEASE'
     implementation 'org.hibernate:hibernate-validator:5.2.4.Final'
@@ -48,6 +49,9 @@ dependencies {
     //providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
     compileOnly 'javax.servlet:javax.servlet-api:3.0.1'
     compileOnly 'javax.servlet.jsp:jsp-api:2.2'
+
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
 
 }

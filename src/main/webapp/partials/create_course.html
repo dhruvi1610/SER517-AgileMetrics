@@ -9,7 +9,7 @@
                             <a href="#/create_course" access="super_user" ng-click="setTab(1)">Course</a>
                         </li>
                         <li >
-                            <a href="#/create_admins" access="super_user" ng-click="setTab(2)">Admins</a>
+                            <a href="#/create_admins" access="super_user" ng-click="setTab(2)">Professors</a>
                         </li>
                         <li >
                             <a href="#/create_teams" access="super_user" ng-click="setTab(3)">Teams</a>
@@ -60,9 +60,22 @@
                                     <label>Course End Date</label>
                                     <input min="{{minDate | date:'yyyy-MM-dd'}}" type="date" class="form-control" ng-model="enteredEndDate" ng-required="true" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}">
                                 </div>
-                                <div class="form-group">
+                                <div ng-show="!showTaigaForm" class="form-group">
                                     <label>Taiga Token</label>
                                     <input type="text" class="form-control" ng-model="enteredTaigaToken" placeholder="Enter Taiga token" ng-required="true">
+                                </div>
+                                <button ng-show="!showTaigaForm" ng-click="showTaigaForm = !showTaigaForm" class="btn btn-primary">Get Taiga Token</button>
+                                <div ng-show="showTaigaForm" style="padding: 10px; border: 1px solid lightgrey">
+                                    <div class="form-group">
+                                        <label>Taiga Username</label>
+                                        <input type="text" class="form-control" ng-model="taigaUsername" placeholder="Enter Taiga Username" ng-required="true">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Taiga Password</label>
+                                        <input type="text" class="form-control" ng-model="taigaPassword" placeholder="Enter Taiga Password" ng-required="true">
+                                    </div>
+                                    <button ng-click="getTaigaToken()" type="submit" class="btn btn-primary">Submit</button>
+                                    <button ng-click="showTaigaForm = false" type="reset" class="btn btn-primary">Cancel</button>
                                 </div>
                                 <div class="form-group">
                                     <label>Slack Token</label>

@@ -11,25 +11,18 @@ import edu.asu.cassess.service.rest.*;
 import edu.asu.cassess.service.security.IUserService;
 import edu.asu.cassess.service.taiga.IMembersService;
 import edu.asu.cassess.service.taiga.IProjectService;
+import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.sql.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.util.Calendar;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @SuppressWarnings("SpringJavaAutowiringInspection")
 @RestController
@@ -79,9 +72,11 @@ public class restController {
     @EJB
     private IProjectService projects;
 
+    @Autowired
+    private ITaigaSprintService taigaSprintService;
+
 
 //-----------------------
-
 
     //New CoursePackage REST API Operations
     /*
@@ -126,6 +121,7 @@ public class restController {
             projects.updateProjects(coursePackage.getCourse());
             members.updateMembership(coursePackage.getCourse());
             consumeUsers.updateSlackUsers(coursePackage.getCourse());
+            taigaSprintService.saveSprintsOfCourse(coursePackage.getCourse());
             new Thread(() -> {
                 taskController.SlackMessages();
             }).start();

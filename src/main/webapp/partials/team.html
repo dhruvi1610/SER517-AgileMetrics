@@ -66,9 +66,15 @@
                         <br><br>
                         <div ng-controller='TeamController'>
                             <nvd3 options='optionsForTaigaTeamTasks' data='dataForTaigaTeamTasks'></nvd3>
-                        <!--</div>
+
+                            <h3>Burdown Chart</h3><br>
+                            <label style="color: black">Select sprint: </label>
+                            <select class="select_style"  ng-model="selectedSprint" ng-options="item.sprintName for item in sprints"
+                                    ng-change="onSprintChange(selectedSprint)">
+                            </select>
+                            <nvd3 options='optionsForTaigaBurndown' data='dataForTaigaBurndown'></nvd3>
                         <div afterRender='fireRefreshEventOnWindow()' ng-controller='TeamController'>
-                            --> <h3>Task Status Update Activity</h3><br>
+                            <h3>Task Status Update Activity</h3><br>
                             <nvd3 options='optionsForTaigaTeamActivity' data='dataForTaigaTeamActivity'></nvd3>
                         </div>
                     </div>
