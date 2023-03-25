@@ -42,7 +42,7 @@ public class DBConfig {
         jdbc:mysql://127.0.0.1:3306/?user=root
 */
         //Connection Parameters for ASU RHEL Server Deployment
-        dataSource.setUrl("jdbc:mysql://localhost:3306/cassess?autoReconnect=true&useSSL=false");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/cassess?allowPublicKeyRetrieval=true&autoReconnect=true&useSSL=false");
         dataSource.setUsername("admin");
         dataSource.setPassword("1234567890");
 /*

@@ -103,14 +103,17 @@ public class GatherGitHubData implements IGatherGitHubData {
         System.out.println("contributors initialized");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
+        if(!accessToken.equalsIgnoreCase("na")) {
+            headers.setBearerAuth(accessToken);
+        }
+        //headers.setBearerAuth(accessToken);
         HttpEntity<String> request = new HttpEntity<>(headers);
         ResponseEntity<GitHubContributors[]> responseEntity = null;
 
         try {
             responseEntity = restTemplate.exchange(url + "/stats/contributors", HttpMethod.GET, request, GitHubContributors[].class);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Git fetch stats failed. " + e.getMessage());
         }
 
         if(responseEntity != null && responseEntity.getBody() != null && !Arrays.toString(responseEntity.getBody()).startsWith("{}")) {

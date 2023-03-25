@@ -20,6 +20,8 @@ import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Student;
 import edu.asu.cassess.persist.entity.rest.Team;
 import edu.asu.cassess.persist.entity.security.User;
+import edu.asu.cassess.persist.entity.taiga.TaigaSprint;
+import edu.asu.cassess.persist.entity.taiga.TaigaSprintDays;
 import edu.asu.cassess.persist.repo.UserRepo;
 import edu.asu.cassess.persist.repo.rest.StudentRepo;
 import edu.asu.cassess.security.SecurityUtils;
@@ -29,9 +31,10 @@ import edu.asu.cassess.service.security.IUserService;
 import edu.asu.cassess.service.slack.IChannelHistoryService;
 import edu.asu.cassess.service.taiga.IMembersService;
 import edu.asu.cassess.service.taiga.IProjectService;
+import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import edu.asu.cassess.service.taiga.ITaskDataService;
 import io.swagger.annotations.Api;
-import net.bytebuddy.agent.builder.AgentBuilder;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -42,15 +45,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.ejb.EJB;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.List;
-
-import static javax.ws.rs.core.HttpHeaders.USER_AGENT;
 
 @Transactional
 @RestController
@@ -126,26 +123,29 @@ public class AppController {
     @EJB
     private IProjectService projects;
 
+    @Autowired
+    private ITaigaSprintService taigaSprintService;
+
     //New Query Based method to retrieve the current User object, associated with the current login
     @ResponseBody
-    @RequestMapping(value = "/current_user", method = RequestMethod.GET)
+    @GetMapping(value = "/current_user")
     public User getCurrentUser(HttpServletRequest request, HttpServletResponse response) {
         return securityUtils.getCurrentUser();
     }
 
     //New Query Based Method to get the course list for which an admin is assigned to
     @ResponseBody
-    @RequestMapping(value = "/admin_courses", method = RequestMethod.GET)
+    @GetMapping(value = "/admin_courses")
     public List<CourseList> getAdminCourses(@RequestHeader(name = "email", required = true) String email,
-                                            HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         return adminService.listGetCoursesForAdmin(email);
 
     }
 
     @ResponseBody
-    @RequestMapping(value = "/course_students", method = RequestMethod.GET)
+    @GetMapping(value = "/course_students")
     public List<Student> getCourseStudents(@RequestHeader(name = "course", required = true) String course,
-                                            HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         return studentService.listReadByCourse(course);
 
     }
@@ -154,58 +154,48 @@ public class AppController {
 
     //Gets the Teams/Projects which are assigned to a course
     @ResponseBody
-    @RequestMapping(value = "/course_teams", method = RequestMethod.GET)
+    @GetMapping(value = "/course_teams")
     public ResponseEntity<List<TeamNames>> getCourseTeams(@RequestHeader(name = "course", required = true) String course,
-                                                          HttpServletRequest request, HttpServletResponse response) {
-        //System.out.print("Course: " + course);
-        List<TeamNames> teamList = (List<TeamNames>) teamService.listGetTeamNames(course);
-        //for(TeamNames team:teamList){
-        //System.out.print("Team: " + team.getTeam());
-        //}
-        return new ResponseEntity<List<TeamNames>>(teamList, HttpStatus.OK);
+        HttpServletRequest request, HttpServletResponse response) {
+        return new ResponseEntity<>(teamService.listGetTeamNames(course), HttpStatus.OK);
     }
 
     //Previous Query Based method to obtain Students assigned to a particular team/project
     @ResponseBody
-    @RequestMapping(value = "/team_students", method = RequestMethod.GET)
+    @GetMapping(value = "/team_students")
     public ResponseEntity<List<Student>> getTeamStudents(@RequestHeader(name = "course", required = true) String course,
-                                                         @RequestHeader(name = "team", required = true) String team,
-                                                         HttpServletRequest request, HttpServletResponse response) {
-        //System.out.print("Team: " + team);
-        List<Student> studentList = (List<Student>) studentService.listReadByTeam(course, team);
-        //for(Student student:studentList){
-        //System.out.print("Student: " + student.getFull_name());
-        //}
-        return new ResponseEntity<List<Student>>(studentList, HttpStatus.OK);
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
+        return new ResponseEntity<>(studentService.listReadByTeam(course, team), HttpStatus.OK);
     }
 
     //New Query Based Methods to get the courses and projects lists for which a student is assigned to
 
     //Gets courses which the student is assigned to
     @ResponseBody
-    @RequestMapping(value = "/student_courses", method = RequestMethod.GET)
+    @GetMapping(value = "/student_courses")
     public List<CourseList> getStudentCourses(@RequestHeader(name = "email", required = true) String email,
-                                              HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         return studentService.listGetCoursesForStudent(email);
 
     }
 
     //Gets Teams assigned to a student
     @ResponseBody
-    @RequestMapping(value = "/student_teams", method = RequestMethod.GET)
+    @GetMapping(value = "/student_teams")
     public List<TeamNames> getAssignedTeams(@RequestHeader(name = "email", required = true) String email,
-                                            @RequestHeader(name = "course", required = true) String course,
-                                            HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "course", required = true) String course,
+        HttpServletRequest request, HttpServletResponse response) {
 
         return studentService.listGetAssignedTeams(email, course);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/student_data", method = RequestMethod.GET)
+    @GetMapping(value = "/student_data")
     public List<Student> getStudent(@RequestHeader(name = "email", required = true) String email,
-                                    @RequestHeader(name = "team", required = true) String team,
-                                    @RequestHeader(name = "course", required = true) String course,
-                                    HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "course", required = true) String course,
+        HttpServletRequest request, HttpServletResponse response) {
 
         return studentService.listReadSingleStudent(course, team, email);
     }
@@ -221,12 +211,12 @@ public class AppController {
 
     //Daily task totals for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_tasks", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_tasks")
     public ResponseEntity<List<DailyTaskTotals>> getStudentTasks(@RequestHeader(name = "course", required = true) String course,
-                                                                 @RequestHeader(name = "team", required = true) String team,
-                                                                 @RequestHeader(name = "email", required = true) String email,
-                                                                 @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                 @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
 
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
@@ -240,11 +230,11 @@ public class AppController {
 
     //Daily task totals for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_tasks", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_tasks")
     public ResponseEntity<List<DailyTaskTotals>> getAverageTeamTasks(@RequestHeader(name = "course", required = true) String course,
-                                                                     @RequestHeader(name = "team", required = true) String team,
-                                                                     @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                     @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
         SimpleDateFormat sdfBegin = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
@@ -259,11 +249,11 @@ public class AppController {
 
     //Daily task totals for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_tasks", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_tasks")
     public ResponseEntity<List<DailyTaskTotals>> getAverageCourseTasks(@RequestHeader(name = "course", required = true) String course,
-                                                                       @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                       @RequestHeader(name = "weekEnding", required = true) long weekEnding,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding,
+        HttpServletRequest request, HttpServletResponse response) {
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
         SimpleDateFormat sdfBegin = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
@@ -278,209 +268,221 @@ public class AppController {
 
     //Weekly Activity for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_activity", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_activity")
     public ResponseEntity<List<WeeklyActivity>> getStudentActivity(@RequestHeader(name = "course", required = true) String course,
-                                                                   @RequestHeader(name = "team", required = true) String team,
-                                                                   @RequestHeader(name = "email", required = true) String email,
-                                                                   HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyActivity> activityList = (List<WeeklyActivity>) taskTotalService.getWeeklyUpdatesByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyActivity>>(activityList, HttpStatus.OK);
     }
 
     //Weekly Activity for a team
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_activity", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_activity")
     public ResponseEntity<List<WeeklyActivity>> getTeamActivity(@RequestHeader(name = "course", required = true) String course,
-                                                                @RequestHeader(name = "team", required = true) String team,
-                                                                HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyActivity> activityList = (List<WeeklyActivity>) taskTotalService.getWeeklyUpdatesByTeam(course, team);
         return new ResponseEntity<List<WeeklyActivity>>(activityList, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/taiga/sprint-days/{sprintId}")
+    public ResponseEntity<List<TaigaSprintDays>> getTaigaSprints(@PathVariable("sprintId") Long sprintId) {
+        List<TaigaSprintDays> taigaSprints = taigaSprintService.getBurndownDataBySprintId(sprintId);
+        return new ResponseEntity<>(taigaSprints, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/taiga/sprints")
+    public ResponseEntity<List<TaigaSprint>> getTaigaSprintNames(@RequestHeader(name = "courseName", required = true) String courseName, @RequestHeader(name = "teamName", required = true) String teamName) {
+        List<TaigaSprint> taigaSprints = taigaSprintService.getSprintNames(courseName, teamName);
+        return new ResponseEntity<>(taigaSprints, HttpStatus.OK);
+    }
+
     //Weekly Activity for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_activity", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_activity")
     public ResponseEntity<List<WeeklyActivity>> getCourseActivity(@RequestHeader(name = "course", required = true) String course,
-                                                                  HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyActivity> activityList = (List<WeeklyActivity>) taskTotalService.getWeeklyUpdatesByCourse(course);
         return new ResponseEntity<List<WeeklyActivity>>(activityList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getTaigaCourseIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                         HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) taskTotalService.getWeeklyIntervalsByCourse(course);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getTaigaTeamIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                       @RequestHeader(name = "team", required = true) String team,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) taskTotalService.getWeeklyIntervalsByTeam(course, team);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getTaigaStudentIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          @RequestHeader(name = "email", required = true) String email,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) taskTotalService.getWeeklyIntervalsByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly weights for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getTaigaStudentWeightFreq(@RequestHeader(name = "course", required = true) String course,
-                                                                            @RequestHeader(name = "team", required = true) String team,
-                                                                            @RequestHeader(name = "email", required = true) String email,
-                                                                            String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.weeklyWeightFreqByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Weekly average weights for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getTaigaTeamWeight(@RequestHeader(name = "course", required = true) String course,
-                                                                     @RequestHeader(name = "team", required = true) String team,
-                                                                     String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.weeklyWeightFreqByTeam(course, team);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Weekly average weights for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getTaigaCourseWeight(@RequestHeader(name = "course", required = true) String course,
-                                                                       String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.weeklyWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Taiga weight for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekStudentWeightFreqTG(@RequestHeader(name = "course", required = true) String course,
-                                                                             @RequestHeader(name = "team", required = true) String team,
-                                                                             @RequestHeader(name = "email", required = true) String email,
-                                                                             String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.twoWeekWeightFreqByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Taiga average weight for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekTeamWeightFreqTG(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.twoWeekWeightFreqByTeam(course, team);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Taiga average weight for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekCourseWeightFreqTG(@RequestHeader(name = "course", required = true) String course,
-                                                                            String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.twoWeekWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week GH weight for a student
     @ResponseBody
-    @RequestMapping(value = "/github/student_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/github/student_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekStudentWeightFreqGH(@RequestHeader(name = "course", required = true) String course,
-                                                                             @RequestHeader(name = "team", required = true) String team,
-                                                                             @RequestHeader(name = "email", required = true) String email,
-                                                                             String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) gitHubQueryDao.getWeightFreqByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week GH average weight for a project
     @ResponseBody
-    @RequestMapping(value = "/github/team_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/github/team_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekProjectWeightFreqGH(@RequestHeader(name = "course", required = true) String course,
-                                                                             @RequestHeader(name = "team", required = true) String team,
-                                                                             String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) gitHubQueryDao.getWeightFreqByTeam(course, team);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week GH average weight for a course
     @ResponseBody
-    @RequestMapping(value = "/github/course_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/github/course_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekCourseWeightFreqGH(@RequestHeader(name = "course", required = true) String course,
-                                                                            String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) gitHubQueryDao.getWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
     //Weekly task status averages for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_average", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_average")
     public ResponseEntity<List<WeeklyAverages>> getStudentAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                  @RequestHeader(name = "team", required = true) String team,
-                                                                  @RequestHeader(name = "email", required = true) String email,
-                                                                  String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.getWeeklyAverageByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
 
     //Weekly task status averages for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_average", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_average")
     public ResponseEntity<List<WeeklyAverages>> getProjectAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                  @RequestHeader(name = "team", required = true) String team,
-                                                                  String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.getWeeklyAverageByTeam(course, team);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
 
     //Weekly task status averages for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_average", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_average")
     public ResponseEntity<List<WeeklyAverages>> getCourseAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                 String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.getWeeklyAverageByCourse(course);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
 
     //Current and last week task status averages for a student
     @ResponseBody
-    @RequestMapping(value = "/taiga/student_quickaverage", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/student_quickaverage")
     public ResponseEntity<List<WeeklyAverages>> lastTwoWeekStudentAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          @RequestHeader(name = "email", required = true) String email,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.lastTwoWeekAveragesByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
 
     //Current and last week task status averages for a project
     @ResponseBody
-    @RequestMapping(value = "/taiga/team_quickaverage", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/team_quickaverage")
     public ResponseEntity<List<WeeklyAverages>> lastTwoWeekProjectAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.lastTwoWeekAveragesByTeam(course, team);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
 
     //Current and last week task status averages for a course
     @ResponseBody
-    @RequestMapping(value = "/taiga/course_quickaverage", method = RequestMethod.GET)
+    @GetMapping(value = "/taiga/course_quickaverage")
     public ResponseEntity<List<WeeklyAverages>> lastTwoWeekCourseAverage(@RequestHeader(name = "course", required = true) String course,
-                                                                         String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyAverages> averageList = (List<WeeklyAverages>) taskTotalService.lastTwoWeekAveragesByCourse(course);
         return new ResponseEntity<List<WeeklyAverages>>(averageList, HttpStatus.OK);
     }
@@ -493,14 +495,14 @@ public class AppController {
 
     //Previous Query Based method to obtain the courses currently in the Database
     //For Admins not assigned to a particular course, but system-Admins
-    @RequestMapping(value = "/taigaCourses", method = RequestMethod.GET)
+    @GetMapping(value = "/taigaCourses")
     public ResponseEntity<List<CourseList>> getCourses(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = (List<CourseList>) courseService.listGetCourses();
         return new ResponseEntity<List<CourseList>>(courseList, HttpStatus.OK);
     }
 
 
-    @RequestMapping(value = "/taiga/Update/Projects", method = RequestMethod.POST)
+    @PostMapping(value = "/taiga/Update/Projects")
     public void updateTaigaProjects(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = courseService.listGetCourses();
         for (CourseList course : courseList) {
@@ -509,7 +511,7 @@ public class AppController {
         }
     }
 
-    @RequestMapping(value = "/taiga/Update/Memberships", method = RequestMethod.POST)
+    @PostMapping(value = "/taiga/Update/Memberships")
     public void updateTaigaMemberships(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = courseService.listGetCourses();
         for (CourseList course : courseList) {
@@ -518,7 +520,7 @@ public class AppController {
         }
     }
 
-    @RequestMapping(value = "/taiga/Update/Tasks", method = RequestMethod.POST)
+    @PostMapping(value = "/taiga/Update/Tasks")
     public void updateTaigaTasks(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = courseService.listGetCourses();
         for (CourseList course : courseList) {
@@ -529,7 +531,7 @@ public class AppController {
 
     //---------- Slack Routes -----------------
 
-    @RequestMapping(value = "/slack/update_users", method = RequestMethod.POST)
+    @PostMapping(value = "/slack/update_users")
     public void updateSlackUses(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = courseService.listGetCourses();
         for (CourseList course : courseList) {
@@ -538,7 +540,7 @@ public class AppController {
         }
     }
 
-    @RequestMapping(value = "/slack/update_messageTotals", method = RequestMethod.POST)
+    @PostMapping(value = "/slack/update_messageTotals")
     public void updateSlackMessageTotals(HttpServletRequest request, HttpServletResponse response) {
         List<CourseList> courseList = courseService.listGetCourses();
         for (CourseList course : courseList) {
@@ -551,10 +553,10 @@ public class AppController {
 
     //Daily Message Counts for a course
     @ResponseBody
-    @RequestMapping(value = "/slack/course_messages", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/course_messages")
     public ResponseEntity<List<DailyMessageTotals>> getSlackCourseMessageCounts(@RequestHeader(name = "course", required = true) String course,
-                                                                                @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                                @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
 
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
@@ -570,11 +572,11 @@ public class AppController {
 
     //Daily Message Counts for a team
     @ResponseBody
-    @RequestMapping(value = "/slack/team_messages", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/team_messages")
     public ResponseEntity<List<DailyMessageTotals>> getSlackTeamMessageCounts(@RequestHeader(name = "course", required = true) String course,
-                                                                              @RequestHeader(name = "team", required = true) String team,
-                                                                              @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                              @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
 
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
@@ -590,12 +592,12 @@ public class AppController {
 
     //Daily Message Counts for a student
     @ResponseBody
-    @RequestMapping(value = "/slack/student_messages", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/student_messages")
     public ResponseEntity<List<DailyMessageTotals>> getSlackStudentMessageCounts(@RequestHeader(name = "course", required = true) String course,
-                                                                                 @RequestHeader(name = "team", required = true) String team,
-                                                                                 @RequestHeader(name = "email", required = true) String email,
-                                                                                 @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                                 @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding, HttpServletRequest request, HttpServletResponse response) {
 
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
@@ -611,120 +613,120 @@ public class AppController {
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/slack/course_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/course_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getSlackCourseIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                         HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) slackMessageTotalsService.getWeeklyIntervalsByCourse(course);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/slack/team_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/team_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getSlackTeamIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                       @RequestHeader(name = "team", required = true) String team,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) slackMessageTotalsService.getWeeklyIntervalsByTeam(course, team);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a student
     @ResponseBody
-    @RequestMapping(value = "/slack/student_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/student_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getSlackStudentIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          @RequestHeader(name = "email", required = true) String email,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) slackMessageTotalsService.getWeeklyIntervalsByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Message Totals for a student
     @ResponseBody
-    @RequestMapping(value = "/slack/student_totals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/student_totals")
     public ResponseEntity<List<WeeklyMessageTotals>> getStudentMessageTotals(@RequestHeader(name = "course", required = true) String course,
-                                                                             @RequestHeader(name = "team", required = true) String team,
-                                                                             @RequestHeader(name = "email", required = true) String email,
-                                                                             HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyMessageTotals> activityList = (List<WeeklyMessageTotals>) slackMessageTotalsService.getWeeklyTotalsByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyMessageTotals>>(activityList, HttpStatus.OK);
     }
 
     //Weekly Message Totals for a team
     @ResponseBody
-    @RequestMapping(value = "/slack/team_totals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/team_totals")
     public ResponseEntity<List<WeeklyMessageTotals>> getTeamMessageTotals(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyMessageTotals> totalsList = (List<WeeklyMessageTotals>) slackMessageTotalsService.getWeeklyTotalsByTeam(course, team);
         return new ResponseEntity<List<WeeklyMessageTotals>>(totalsList, HttpStatus.OK);
     }
 
     //Weekly Message Totals for a course
     @ResponseBody
-    @RequestMapping(value = "/slack/course_totals", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/course_totals")
     public ResponseEntity<List<WeeklyMessageTotals>> getCourseMessageTotals(@RequestHeader(name = "course", required = true) String course,
-                                                                            HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyMessageTotals> totalsList = (List<WeeklyMessageTotals>) slackMessageTotalsService.getWeeklyTotalsByCourse(course);
         return new ResponseEntity<List<WeeklyMessageTotals>>(totalsList, HttpStatus.OK);
     }
 
     //Weekly weights/frequencies for a student
     @ResponseBody
-    @RequestMapping(value = "/slack/student_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/student_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getSlackStudentWeightFreq(@RequestHeader(name = "course", required = true) String course,
-                                                                            @RequestHeader(name = "team", required = true) String team,
-                                                                            @RequestHeader(name = "email", required = true) String email,
-                                                                            String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.weeklyWeightFreqByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Weekly average weights/frequencies for a project
     @ResponseBody
-    @RequestMapping(value = "/slack/team_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/team_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getSlackTeamWeightFreq(@RequestHeader(name = "course", required = true) String course,
-                                                                         @RequestHeader(name = "team", required = true) String team,
-                                                                         String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.weeklyWeightFreqByTeam(course, team);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Weekly average weights/frequencies for a course
     @ResponseBody
-    @RequestMapping(value = "/slack/course_weightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/course_weightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> getSlackCourseWeightFreq(@RequestHeader(name = "course", required = true) String course,
-                                                                           String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.weeklyWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Slack weight/frequency for a student
     @ResponseBody
-    @RequestMapping(value = "/slack/student_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/student_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekStudentWeightFreqSK(@RequestHeader(name = "course", required = true) String course,
-                                                                             @RequestHeader(name = "team", required = true) String team,
-                                                                             @RequestHeader(name = "email", required = true) String email,
-                                                                             String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.twoWeekWeightFreqByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Slack average weight/frequency for a project
     @ResponseBody
-    @RequestMapping(value = "/slack/team_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/team_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekTeamWeightFreqSK(@RequestHeader(name = "course", required = true) String course,
-                                                                          @RequestHeader(name = "team", required = true) String team,
-                                                                          String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.twoWeekWeightFreqByTeam(course, team);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
 
     //Current and last week Taiga average weight/frequency for a course
     @ResponseBody
-    @RequestMapping(value = "/slack/course_quickweightFreq", method = RequestMethod.GET)
+    @GetMapping(value = "/slack/course_quickweightFreq")
     public ResponseEntity<List<WeeklyFreqWeight>> twoWeekCourseWeightFreqSK(@RequestHeader(name = "course", required = true) String course,
-                                                                            String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) slackMessageTotalsService.twoWeekWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
     }
@@ -732,14 +734,14 @@ public class AppController {
     //---------- GitHub Routes --------------
 
     //GET the weights for the selected email
-    @RequestMapping(value = "/github/weight", method = RequestMethod.GET)
+    @GetMapping(value = "/github/weight")
     public ResponseEntity<List<GitHubWeight>> getGitHubWeight(@RequestHeader(name = "email") String email,
-                                                              HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<GitHubWeight> weightList = weightDao.getWeightByEmail(email);
         return new ResponseEntity<List<GitHubWeight>>(weightList, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/github/weight", method = RequestMethod.POST)
+    @PostMapping(value = "/github/weight")
     public void updateGitHubData(HttpServletRequest request, HttpServletResponse response) {
         List<Team> teams = teamService.listReadAll();
         for (Team team : teams) {
@@ -749,19 +751,19 @@ public class AppController {
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/commits", method = RequestMethod.GET)
+    @GetMapping(value = "/github/commits")
     public ResponseEntity<List<CommitData>> getGitHubCommits(@RequestHeader(name = "email") String email,
-                                                             HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<CommitData> commitList = commitDao.getCommitByEmail(email);
         return new ResponseEntity<List<CommitData>>(commitList, HttpStatus.OK);
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/commits_course", method = RequestMethod.GET)
+    @GetMapping(value = "/github/commits_course")
     public ResponseEntity<List<CommitData>> getGitHubCommitsByCourse(@RequestHeader(name = "course") String course,
-                                                                     @RequestHeader(name = "weekBeginning",required = false) long weekBeginning,
-                                                                     @RequestHeader(name = "weekEnding", required = false) long weekEnding,
-                                                                     HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "weekBeginning",required = false) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = false) long weekEnding,
+        HttpServletRequest request, HttpServletResponse response) {
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
         SimpleDateFormat sdfBegin = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
@@ -773,12 +775,12 @@ public class AppController {
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/commits_team", method = RequestMethod.GET)
+    @GetMapping(value = "/github/commits_team")
     public ResponseEntity<List<CommitData>> getGitHubCommitsByTeam(@RequestHeader(name = "course", required = true) String course,
-                                                                   @RequestHeader(name = "team", required = true) String team,
-                                                                   @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                   @RequestHeader(name = "weekEnding", required = true) long weekEnding,
-                                                                   HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding,
+        HttpServletRequest request, HttpServletResponse response) {
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
         SimpleDateFormat sdfBegin = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
@@ -790,13 +792,13 @@ public class AppController {
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/commits_student", method = RequestMethod.GET)
+    @GetMapping(value = "/github/commits_student")
     public ResponseEntity<List<CommitData>> getGitHubCommitsByStudent(@RequestHeader(name = "course", required = true) String course,
-                                                                      @RequestHeader(name = "team", required = true) String team,
-                                                                      @RequestHeader(name = "email", required = true) String email,
-                                                                      @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
-                                                                      @RequestHeader(name = "weekEnding", required = true) long weekEnding,
-                                                                      HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        @RequestHeader(name = "weekBeginning", required = true) long weekBeginning,
+        @RequestHeader(name = "weekEnding", required = true) long weekEnding,
+        HttpServletRequest request, HttpServletResponse response) {
         Date dateBegin = new Date(weekBeginning * 1000L); // *1000 is to convert seconds to milliseconds
         Date dateEnd = new Date(weekEnding * 1000L); // *1000 is to convert seconds to milliseconds
         SimpleDateFormat sdfBegin = new SimpleDateFormat("yyyy-MM-dd"); // the format of your date
@@ -809,68 +811,68 @@ public class AppController {
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/github/course_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/github/course_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getGithubCourseIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                          HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) gitHubQueryDao.getWeeklyIntervalsByCourse(course);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a project
     @ResponseBody
-    @RequestMapping(value = "/github/team_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/github/team_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getGithubTeamIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                        @RequestHeader(name = "team", required = true) String team,
-                                                                        HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) gitHubQueryDao.getWeeklyIntervalsByTeam(course, team);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //Weekly Intervals for a student
     @ResponseBody
-    @RequestMapping(value = "/github/student_intervals", method = RequestMethod.GET)
+    @GetMapping(value = "/github/student_intervals")
     public ResponseEntity<List<WeeklyIntervals>> getGithubStudentIntervals(@RequestHeader(name = "course", required = true) String course,
-                                                                           @RequestHeader(name = "team", required = true) String team,
-                                                                           @RequestHeader(name = "email", required = true) String email,
-                                                                           String weekEnding, HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyIntervals> intervalList = (List<WeeklyIntervals>) gitHubQueryDao.getWeeklyIntervalsByStudent(course, team, email);
         return new ResponseEntity<List<WeeklyIntervals>>(intervalList, HttpStatus.OK);
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/weights_course", method = RequestMethod.GET)
+    @GetMapping(value = "/github/weights_course")
     public ResponseEntity<List<GitHubWeight>> getGitHubWeightsByCourse(@RequestHeader(name = "course") String course,
-                                                                       HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         List<GitHubWeight> weightList = gitHubWeightQueryDao.getWeightsByCourse(course);
         return new ResponseEntity<List<GitHubWeight>>(weightList, HttpStatus.OK);
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/weights_team", method = RequestMethod.GET)
+    @GetMapping(value = "/github/weights_team")
     public ResponseEntity<List<GitHubWeight>> getGitHubWeightsByTeam(@RequestHeader(name = "course", required = true) String course,
-                                                                     @RequestHeader(name = "team", required = true) String team,
-                                                                     HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        HttpServletRequest request, HttpServletResponse response) {
         List<GitHubWeight> weightList = gitHubWeightQueryDao.getWeightsByTeam(course, team);
         return new ResponseEntity<List<GitHubWeight>>(weightList, HttpStatus.OK);
     }
 
     //GET the commits for the selected email
-    @RequestMapping(value = "/github/weights_student", method = RequestMethod.GET)
+    @GetMapping(value = "/github/weights_student")
     public ResponseEntity<List<GitHubWeight>> getGitHubWeightsByStudent(@RequestHeader(name = "course", required = true) String course,
-                                                                        @RequestHeader(name = "team", required = true) String team,
-                                                                        @RequestHeader(name = "email", required = true) String email,
-                                                                        HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         List<GitHubWeight> weightList = gitHubWeightQueryDao.getWeightsByStudent(course, team, email);
         return new ResponseEntity<List<GitHubWeight>>(weightList, HttpStatus.OK);
     }
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/studentProfileDelTeam", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/studentProfileDelTeam", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object deleteStudentFromGUITeam(@RequestHeader(name = "course", required = true) String course,
-                                        @RequestHeader(name = "team", required = true) String team,
-                                        @RequestHeader(name = "email", required = true) String email,
-                                        HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         if (email != null) {
             User user = userRepo.findByEmail(email);
             Object object = studentService.find(email, team, course);
@@ -896,12 +898,12 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/studentProfileDelCourse", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/studentProfileDelCourse", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> void deleteStudentFromGUICourse(@RequestHeader(name = "course", required = true) String course,
-                                        @RequestHeader(name = "email", required = true) String email,
-                                        HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         if (email != null) {
             List<Student> students = studentService.listReadStudent(course, email);
             if (!students.isEmpty()) {
@@ -925,12 +927,12 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/adminProfileDelete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/adminProfileDelete", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object deleteAdminFromGUI(@RequestHeader(name = "course", required = true) String course,
-                                  @RequestHeader(name = "email", required = true) String email,
-                                  HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         if (email != null) {
             Object object = adminService.find(email, course);
             Admin admin = new Admin();
@@ -949,11 +951,11 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/userProfileDelete", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value = "/userProfileDelete", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object deleteUserFromGUI(@RequestHeader(name = "email", required = true) String email,
-                                 HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         if (email != null) {
             User user = userRepo.findByEmail(email);
             response.setStatus(HttpServletResponse.SC_OK);
@@ -965,13 +967,13 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/studentDisable", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/studentDisable", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object disableStudentFromGUI(@RequestHeader(name = "course", required = true) String course,
-                                     @RequestHeader(name = "team", required = true) String team,
-                                     @RequestHeader(name = "email", required = true) String email,
-                                     HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         Object object = studentService.find(email, team, course);
         Student student = new Student();
         if (object.getClass() == Student.class) {
@@ -983,13 +985,13 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/studentEnable", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/studentEnable", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object enableStudentFromGUI(@RequestHeader(name = "course", required = true) String course,
-                                     @RequestHeader(name = "team", required = true) String team,
-                                     @RequestHeader(name = "email", required = true) String email,
-                                     HttpServletRequest request, HttpServletResponse response) {
+        @RequestHeader(name = "team", required = true) String team,
+        @RequestHeader(name = "email", required = true) String email,
+        HttpServletRequest request, HttpServletResponse response) {
         Object object = studentService.find(email, team, course);
         Student student = new Student();
         if (object.getClass() == Student.class) {
@@ -1001,11 +1003,11 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/userDisable", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/userDisable", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object disableUserFromGUI(@RequestHeader(name = "email", required = true) String email,
-                                     HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         Object object = userRepo.findByEmail(email);
         User user = new User();
         if (object.getClass() == User.class) {
@@ -1017,11 +1019,11 @@ public class AppController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @RequestMapping(value = "/userEnable", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/userEnable", produces = MediaType.APPLICATION_JSON_VALUE)
     public
     @ResponseBody
     <T> Object enableUserFromGUI(@RequestHeader(name = "email", required = true) String email,
-                                    HttpServletRequest request, HttpServletResponse response) {
+        HttpServletRequest request, HttpServletResponse response) {
         Object object = userRepo.findByEmail(email);
         User user = new User();
         if (object.getClass() == User.class) {

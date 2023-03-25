@@ -941,19 +941,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         };
 
     }])
-     .controller('chartController', ['$scope', '$routeParams', '$location', 'courseService', 'userService', '$http', function ($scope, $routeParams, $location, courseService, userService, $http) {
-                 var dps = [{x: 1, y: 10}, {x: 2, y: 13}, {x: 3, y: 18}, {x: 4, y: 20}, {x: 5, y: 17},{x: 6, y: 10}, {x: 7, y: 13}, {x: 8, y: 18}, {x: 9, y: 20}, {x: 10, y: 17}];
-                   var chartOptions ={
-
-                     data: [{
-                       type: "line",
-                       dataPoints : dps
-                     }]
-                   };
-                   var chart = new CanvasJS.Chart("chartContainer", chartOptions);
-                   chart.render();
-             }])
-
     .controller('CourseController', ['$scope', '$routeParams', '$location', 'courseService', 'userService', '$http', function ($scope, $routeParams, $location, courseService, userService, $http) {
         if ($routeParams.course_id != null) {
             $scope.courseid = $routeParams.course_id;
@@ -1328,6 +1315,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             return data;
         }
+
         function getGithubIntervals() {
             $http({
                 url: './github/course_intervals',
@@ -1905,6 +1893,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         }
 
         $scope.commitMaxY = 0;
+        $scope.selectedSprint;
 
         //console.log("team: " + $scope.teamid);
 
@@ -1926,8 +1915,93 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $location.path('/home');
             } else {
                 getTaigaCourseWeightFreq();
+                getTaigaSprintNames();
             }
         });
+
+        function getTaigaSprintNames() {
+            $http({
+                url: './taiga/sprints',
+                method: "GET",
+                headers: {'courseName': course, 'teamName': $scope.teamid}
+            }).then(function (response) {
+                $scope.sprints = response.data;
+                $scope.selectedSprint = response.data[0];
+                getTaigaSprints();
+            }, function (response) {
+                //fail case
+                console.log("didn't work");
+            });
+        }
+
+        function getTaigaSprints() {
+            if(!$scope.selectedSprint) {
+              $scope.dataForTaigaBurndown = getdataForTaigaBurndown([]);
+              return;
+            }
+
+            $http({
+                url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
+                method: "GET",
+//                headers: {'sprintName': $scope.selectedSprint}
+            }).then(function (response) {
+                $scope.dataForTaigaBurndown = getdataForTaigaBurndown(response.data);
+                let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
+                $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        $scope.optionsForTaigaBurndown = {
+            chart: {
+                type: 'lineChart',
+                height: 450,
+                margin : {
+                    top: 50,
+                    right: 150,
+                    bottom: 100,
+                    left: 100
+                },
+                x: function(d){ return d[0]; },
+                y: function(d){ return d[1]; },
+                useInteractiveGuideline: true,
+                xAxis: {
+                    axisLabel: 'Date',
+                    tickFormat: function(d) {
+                        return d3.time.format('%b %d')(new Date(d))
+                    },
+
+                    showMaxMin: false,
+                    staggerLabels: false
+                },
+                yAxis: {
+                    axisLabel: 'Points',
+                    axisLabelDistance: 0
+                },
+            },
+        };
+
+        $scope.onSprintChange = function(sprint) {
+          $scope.selectedSprint = sprint;
+          getTaigaSprints();
+        }
+
+        function getdataForTaigaBurndown(array){
+            var data = []; var actual = []; var estimated = [];
+
+            for (let item of array){
+              let dateArray = item.taigaSprintDaysId.date;
+              let date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]).getTime();
+
+              actual.push([date, item.actualPoints]);
+              estimated.push([date, item.estimatedPoints]);
+            }
+
+            data.push({color: "#a8e440", key: "ACTUAL", values: actual, strokeWidth: 2, area: true});
+            data.push({color: "#c1d9ba", key: "ESTIMATED", values: estimated, strokeWidth: 2, area: true});
+            return data;
+        }
 
         function getTaigaCourseWeightFreq() {
             $http({
@@ -2235,7 +2309,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             data.push({color: "#8f65b6", key: "EXPECTED", values: expected, classed: "dashed"});
             return data;
         }
-		function getTaigaLineChartMax(taigaLineChartMax){
+		    function getTaigaLineChartMax(taigaLineChartMax){
             if(taigaLineChartMax > 50){
                 return 50;
             } else {
@@ -2563,66 +2637,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
         $scope.optionsForTaigaTeamTasks = {
 
-            chart: {
-                type: 'multiBarChart',
-                height: 450,
-                margin : {
-                    top: 50,
-                    right: 150,
-                    bottom: 100,
-                    left:100
-                },
-
-                x: function(d){ return d[0]; },
-                y: function(d){ return d[1]; },
-
-                clipEdge: true,
-                duration: 500,
-                stacked: false,
-
-                xAxis: {
-                    axisLabel: 'Date of Activity',
-                    showMaxMin: false
-                },
-
-                yAxis: {
-                    axisLabel: 'Taiga Task Totals',
-                    axisLabelDistance: 0
-                }
-            }
-        };
-
-        function getDataForTaigaTeamTasks(array){
-
-            var data = []; var inProgress = []; var toTest = []; var done =[];
-
-            for (var i = 0; i < array.length; i++){
-
-                var valueset1 = [];var valueset2 = [];var valueset3 = [];
-
-                valueset1.push(array[i].date);
-                valueset1.push(array[i].inProgress);
-
-                valueset2.push(array[i].date);
-                valueset2.push(array[i].toTest);
-
-                valueset3.push(array[i].date);
-                valueset3.push(array[i].done);
-
-                inProgress.push(valueset1);
-                toTest.push(valueset2);
-                done.push(valueset3);
-            }
-
-            data.push({color: "#6799ee", key: "IN PROGRESS", values: inProgress});
-            data.push({color: "#000000", key: "READY FOR TEST", values: toTest});
-            data.push({color: "#2E8B57", key: "CLOSED", values: done});
-
-            return data;
-        }
-
-        $scope.optionsForTaigaTeamTasks = {
-
                     chart: {
                         type: 'multiBarChart',
                         height: 450,
@@ -2652,34 +2666,34 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     }
                 };
 
-                function getDataForTaigaTeamTasks(array){
+        function getDataForTaigaTeamTasks(array){
 
-                    var data = []; var inProgress = []; var toTest = []; var done =[];
+            var data = []; var inProgress = []; var toTest = []; var done =[];
 
-                    for (var i = 0; i < array.length; i++){
+            for (var i = 0; i < array.length; i++){
 
-                        var valueset1 = [];var valueset2 = [];var valueset3 = [];
+                var valueset1 = [];var valueset2 = [];var valueset3 = [];
 
-                        valueset1.push(array[i].date);
-                        valueset1.push(array[i].inProgress);
+                valueset1.push(array[i].date);
+                valueset1.push(array[i].inProgress);
 
-                        valueset2.push(array[i].date);
-                        valueset2.push(array[i].toTest);
+                valueset2.push(array[i].date);
+                valueset2.push(array[i].toTest);
 
-                        valueset3.push(array[i].date);
-                        valueset3.push(array[i].done);
+                valueset3.push(array[i].date);
+                valueset3.push(array[i].done);
 
-                        inProgress.push(valueset1);
-                        toTest.push(valueset2);
-                        done.push(valueset3);
-                    }
+                inProgress.push(valueset1);
+                toTest.push(valueset2);
+                done.push(valueset3);
+            }
 
-                    data.push({color: "#6799ee", key: "IN PROGRESS", values: inProgress});
-                    data.push({color: "#000000", key: "READY FOR TEST", values: toTest});
-                    data.push({color: "#2E8B57", key: "CLOSED", values: done});
+            data.push({color: "#6799ee", key: "IN PROGRESS", values: inProgress});
+            data.push({color: "#000000", key: "READY FOR TEST", values: toTest});
+            data.push({color: "#2E8B57", key: "CLOSED", values: done});
 
-                    return data;
-                }
+            return data;
+        }
 
         function getTaigaActivity() {
             $scope.taigaMaxY = 0;
@@ -5024,6 +5038,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             $rootScope.provisionMode = true;
 
+
             $scope.tab = 1;
 
             $scope.setTab = function (newTab) {
@@ -5048,36 +5063,65 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             //console.log("minDate: " + $scope.minDate);
 
+            $scope.showTaigaForm = false;
+            $scope.taigaUsername = "";
+            $scope.taigaPassword = "";
+
             $rootScope.provisionMode = true;
             if($rootScope.coursePackage.course != null && $rootScope.coursePackage.course != '')   {
                 courseCreateService.setCourse($rootScope.coursePackage.course);
                 //console.log("setCourse: " + $rootScope.coursePackage.course);
             }
 
+            $scope.getTaigaToken = function () {
+                if ($scope.taigaUsername  != '' && $scope.taigaPassword != '') {
+                    $http({
+                        url: "https://api.taiga.io/api/v1/auth",
+                        method: "POST",
+                        headers: {'Content-Type': 'application/json; charset=utf-8'},
+                        data: {
+                          "type": "normal",
+                          "username": $scope.taigaUsername,
+                          "password": $scope.taigaPassword
+                        },
+                    }).then(function (response) {
+                        $scope.message = "Taiga Success: " + response.status;
+                        $scope.enteredTaigaToken = response.data.auth_token;
+                        $scope.showTaigaForm = false;
+                        $scope.taigaUsername = "";
+                        $scope.taigaPassword = "";
+                    }, function (response) {
+                        $scope.message = "Taiga Failure: " + response.status;
+                    });
+                } else {
+                    $scope.message = 'Please enter Taiga username and password';
+                }
+            };
+
             $scope.saveCourse = function() {
                 if($scope.enteredCourseName != null && $scope.enteredCourseName != '') {
                     if ($scope.enteredEndDate != null && $scope.enteredEndDate != '') {
-                                if ($scope.enteredTaigaToken != null && $scope.enteredTaigaToken != '') {
-                                    $rootScope.coursePackage.course = $scope.enteredCourseName;
-                                    var dateEntered = new Date($scope.enteredEndDate);
-                                    dateEntered.setDate(dateEntered.getDate());
-                                    var dateConverted = (dateEntered.getFullYear() + '-' + ('0' + (dateEntered.getMonth()+1)).slice(-2) + '-' + ('0' + dateEntered.getDate()).slice(-2))
-                                    $rootScope.coursePackage.end_date = dateConverted;
-                                    if ($scope.enteredTaigaToken != $scope.coursePackage.taiga_token) {
-                                        for (var i in $rootScope.coursePackage.teams) {
-                                            $rootScope.coursePackage.teams[i].hideTaigaOk = true;
-                                            $rootScope.coursePackage.teams[i].hideTaigaRemove = false;
-                                        }
-                                    }
-                                    $rootScope.coursePackage.taiga_token = $scope.enteredTaigaToken;
-                                    $rootScope.coursePackage.slack_token = $scope.enteredSlackToken;
-                                    courseCreateService.setCourse($rootScope.coursePackage.course);
-                                    //console.log("saveCourse: " + $rootScope.coursePackage.course);
-                                    $scope.message = 'Course ' + $scope.enteredCourseName + ' successfuly saved';
-                                    $scope.clearCourseForm();
-                                } else {
-                                    $scope.message = 'Please Enter Taiga token prior to saving a Course';
+                        if ($scope.enteredTaigaToken != null && $scope.enteredTaigaToken != '') {
+                            $rootScope.coursePackage.course = $scope.enteredCourseName;
+                            var dateEntered = new Date($scope.enteredEndDate);
+                            dateEntered.setDate(dateEntered.getDate());
+                            var dateConverted = (dateEntered.getFullYear() + '-' + ('0' + (dateEntered.getMonth()+1)).slice(-2) + '-' + ('0' + dateEntered.getDate()).slice(-2))
+                            $rootScope.coursePackage.end_date = dateConverted;
+                            if ($scope.enteredTaigaToken != $scope.coursePackage.taiga_token) {
+                                for (var i in $rootScope.coursePackage.teams) {
+                                    $rootScope.coursePackage.teams[i].hideTaigaOk = true;
+                                    $rootScope.coursePackage.teams[i].hideTaigaRemove = false;
                                 }
+                            }
+                            $rootScope.coursePackage.taiga_token = $scope.enteredTaigaToken;
+                            $rootScope.coursePackage.slack_token = $scope.enteredSlackToken;
+                            courseCreateService.setCourse($rootScope.coursePackage.course);
+                            //console.log("saveCourse: " + $rootScope.coursePackage.course);
+                            $scope.message = 'Course ' + $scope.enteredCourseName + ' successfuly saved';
+                            $scope.clearCourseForm();
+                        } else {
+                            $scope.message = 'Please Enter Taiga token prior to saving a Course';
+                        }
                     } else {
                         $scope.message = 'Please Enter End date prior to saving a Course';
                     }
@@ -5100,6 +5144,9 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.enteredEndDate = '';
                 $scope.enteredTaigaToken = '';
                 $scope.enteredSlackToken = '';
+                $scope.showTaigaForm = false;
+                $scope.taigaUsername = "";
+                $scope.taigaPassword = "";
                 taigaTokenChanged = false;
             };
 

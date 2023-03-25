@@ -1,11 +1,14 @@
 package edu.asu.cassess.service.taiga;
 
+import edu.asu.cassess.dto.ProjectCourseDto;
 import edu.asu.cassess.model.Taiga.Slugs;
 import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.taiga.Project;
 import edu.asu.cassess.persist.repo.taiga.ProjectRepo;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.ITeamsService;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -77,5 +80,23 @@ public class ProjectService implements IProjectService {
             }
         }
 
+    }
+
+    @Override
+    public List<ProjectCourseDto> getProjectInfoOfActiveCourses() {
+        return convertObjectToDto(projectStoreDao.getProjectInfoOfActiveCourses());
+    }
+
+    @Override
+    public List<ProjectCourseDto> getProjectInfoOfActiveCourses(String courseName) {
+        return convertObjectToDto(projectStoreDao.getProjectCourseInfoByCourse(courseName));
+    }
+
+    private List<ProjectCourseDto> convertObjectToDto(List<Object[]> projectCourseInfo) {
+        List<ProjectCourseDto> res = new ArrayList<>();
+        projectCourseInfo.forEach(item -> {
+            res.add(new ProjectCourseDto(item[0].toString(), item[1].toString(), new BigInteger(item[2].toString()).longValue(), item[3].toString()));
+        });
+        return res;
     }
 }
