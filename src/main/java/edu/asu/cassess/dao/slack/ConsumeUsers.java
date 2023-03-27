@@ -8,8 +8,14 @@ import edu.asu.cassess.persist.entity.slack.SlackAuth;
 import edu.asu.cassess.persist.entity.slack.UserInfo;
 import edu.asu.cassess.persist.entity.slack.UserList;
 import edu.asu.cassess.persist.entity.slack.UserObject;
+import edu.asu.cassess.persist.entity.slack.UserProfile;
+import edu.asu.cassess.service.github.GitHubContributors;
 import edu.asu.cassess.service.rest.ICourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -39,16 +45,29 @@ public class ConsumeUsers implements IConsumeUsers {
 
     @Override
     public UserList getUserList(String token) {
-        String ulURL = baseURL + "users.list?token=" + token;
-        UserList ul = restTemplate.getForObject(ulURL, UserList.class);
-        return ul;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<UserList> responseEntity = null;
+
+        try {
+            responseEntity = restTemplate.exchange(baseURL + "users.list", HttpMethod.GET, request, UserList.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return responseEntity != null ? responseEntity.getBody() : null;
     }
 
     @Override
     public void saveUserList(UserList userList, String course) {
-        userList.getMembers();
-        for(UserObject user:userList.getMembers()){
+        for(UserObject user : userList.getMembers()){
             user.setCourse(course);
+            UserProfile userProfile = user.getProfile();
+            if(userProfile.getDisplay_name().isEmpty()) {
+                userProfile.setDisplay_name(user.getName());
+                user.setProfile(userProfile);
+            }
             dao.save(user);
         }
     }

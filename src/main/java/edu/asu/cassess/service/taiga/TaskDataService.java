@@ -11,6 +11,7 @@ import edu.asu.cassess.service.rest.CourseService;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IStudentsService;
 import edu.asu.cassess.service.rest.ITeamsService;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -193,9 +194,9 @@ public class TaskDataService implements ITaskDataService {
         //System.out.println("Updating Tasks");
         if (courseService == null) courseService = new CourseService();
         Course tempCourse = (Course) courseService.read(course);
-        java.util.Date current = new java.util.Date();
+        Date current = new Date();
         try {
-            current = new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(new java.util.Date()));
+            current = new SimpleDateFormat("yyyy-mm-dd").parse(LocalDate.now().toString());
         } catch (ParseException e) {
             e.printStackTrace();
         }

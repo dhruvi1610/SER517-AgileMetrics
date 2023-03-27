@@ -7,6 +7,7 @@ import edu.asu.cassess.service.github.IGatherGitHubData;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.ITeamsService;
 import edu.asu.cassess.service.slack.IChannelHistoryService;
+import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,6 +36,9 @@ public class TaskController {
 
     @Autowired
     private IGatherGitHubData gatherData;
+
+    @Autowired
+    private ITaigaSprintService taigaSprintService;
 	
 	@Scheduled(cron = "${taiga.cron.expression}")
 	public void TaigaTasks() {
@@ -46,21 +50,34 @@ public class TaskController {
 	}
 
     @Scheduled(cron = "${github.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void GitHubCommits() {
         List<Team> teams = teamsService.listReadAll();
         for(Team team: teams){
-            Course course = (Course) coursesService.read(team.getCourse());
-            gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+            try {
+                Course course = (Course) coursesService.read(team.getCourse());
+                gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         System.out.println("github cron ran as scheduled");
     }
 
     @Scheduled(cron = "${slack.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void SlackMessages() {
     List<CourseList> courseList = coursesService.listGetCourses();
         for (CourseList course : courseList) {
         channelHistoryService.updateMessageTotals(course.getCourse());
         }
         System.out.println("slack cron ran as scheduled");
+    }
+
+    @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
+    public void TaigaSprints() {
+        taigaSprintService.updateActiveSprints();
+        System.out.println("taiga sprints cron ran as scheduled");
     }
 }

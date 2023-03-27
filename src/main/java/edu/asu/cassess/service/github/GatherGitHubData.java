@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.asu.cassess.dao.github.IGitHubCommitDataDao;
 import edu.asu.cassess.dao.github.IGitHubWeightQueryDao;
 import edu.asu.cassess.model.github.GitHubAnalytics;
+import edu.asu.cassess.model.slack.MessageList;
 import edu.asu.cassess.persist.entity.github.CommitData;
 
 import edu.asu.cassess.persist.entity.github.GitHubPK;
@@ -20,6 +21,10 @@ import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IStudentsService;
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -95,48 +100,28 @@ public class GatherGitHubData implements IGatherGitHubData {
     }
 
     private void getStats(String course, String team, String accessToken, Course tempCourse) {
-        List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
-        messageConverters.add(new FormHttpMessageConverter());
-        messageConverters.add(new StringHttpMessageConverter());
-        messageConverters.add(new MappingJackson2HttpMessageConverter());
-        restTemplate.setMessageConverters(messageConverters);
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
-
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url + "/stats/contributors");
-//                .queryParam("access_token", accessToken + "&scope=&token_type=bearer");
-        String urlPath = builder.build().toUriString();
-
-        //System.out.println("GitHub URL: " + urlPath);
-
-        String json = "";
-        try {
-            json = restTemplate.getForObject(urlPath, String.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //System.out.println("Read as String");
-
-        List<GitHubContributors> contributors = null;
-
         System.out.println("contributors initialized");
 
-        if(!json.isEmpty() && !json.startsWith("{}")) {
+        HttpHeaders headers = new HttpHeaders();
+        if(!accessToken.equalsIgnoreCase("na")) {
+            headers.setBearerAuth(accessToken);
+        }
+        //headers.setBearerAuth(accessToken);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<GitHubContributors[]> responseEntity = null;
 
-            try {
-                contributors = mapper.readValue(json, new TypeReference<List<GitHubContributors>>() {
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if(contributors != null) {
+        try {
+            responseEntity = restTemplate.exchange(url + "/stats/contributors", HttpMethod.GET, request, GitHubContributors[].class);
+        } catch (Exception e) {
+            System.out.println("Git fetch stats failed. " + e.getMessage());
+        }
+
+        if(responseEntity != null && responseEntity.getBody() != null && !Arrays.toString(responseEntity.getBody()).startsWith("{}")) {
+            List<GitHubContributors> contributors = Arrays.asList(responseEntity.getBody());
+            if (!contributors.isEmpty()) {
                 contributors.removeAll(Collections.singleton(null));
                 storeStats(contributors, accessToken, course, team, tempCourse);
             }
-        } else {
-            //System.out.println("Response Empty");
         }
     }
 
