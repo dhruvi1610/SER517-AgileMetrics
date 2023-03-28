@@ -4692,7 +4692,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.teams = [];
 
             $scope.message = "";
-
+            $scope.hasTaigaCustomAttribute = false;
+            $scope.enteredTaigaCustomAttribute = "Business Value";
             var gitHubInfoChanged = false;
 
             var taigaInfoChanged = false;
@@ -4718,6 +4719,10 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedRow = index;
                 $scope.selectedTeam = $scope.teams[index];
             };
+              $scope.toggleCustomAttributeFlag = function() {
+              hasTaigaCustomAttribute = !hasTaigaCustomAttribute;
+            }
+
 
             $scope.saveTeam = function() {
                 if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
