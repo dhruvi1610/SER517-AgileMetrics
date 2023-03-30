@@ -4690,6 +4690,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.team = {};
 
             $scope.teams = [];
+            $scope.isPrivateRepo = true;
+            
 
             $scope.message = "";
             $scope.hasTaigaCustomAttribute = false;
@@ -4719,8 +4721,11 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedRow = index;
                 $scope.selectedTeam = $scope.teams[index];
             };
+
               $scope.toggleCustomAttributeFlag = function() {
               hasTaigaCustomAttribute = !hasTaigaCustomAttribute;
+             $scope.toggleIsPrivateRepo = function() {
+              isPrivateRepo = !isPrivateRepo;
             }
 
 
