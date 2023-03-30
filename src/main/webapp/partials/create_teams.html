@@ -78,9 +78,20 @@
                                     <span ng-show="taigaVerified" class="ng-hide glyphicon glyphicon-ok" style="color:green;">Verified</span>
                                     <span ng-show="taigaNotVerified" class="ng-hide glyphicon glyphicon-remove" style="color:red;">Unverified</span>
                                 </div>
+                                 <div class="form-group">
+                                    <input type="checkbox" ng-model="hasTaigaCustomAttribute" ng-click="toggleCustomAttributeFlag()"/> Has Custom Attribute?
+                                </div>
+                                <div ng-show="hasTaigaCustomAttribute" class="form-group">
+                                    <label>Taiga Custom Attribute</label>
+                                    <input type="text" class="form-control" ng-model="enteredTaigaCustomAttribute">
+                                </div>
                                 <div class="form-group">
                                     <label>GitHub Owner</label>
                                     <input type="text" class="form-control"ng-model="enteredGitHubOwner" placeholder="Enter GitHub owner" ng-required="true" ng-change="setGitHubUnverified()">
+                                </div>
+                                 <div ng-show="hasTaigaCustomAttribute" class="form-group">
+                                    <label>Taiga Custom Attribute</label>
+                                    <input type="text" class="form-control" ng-model="enteredTaigaCustomAttribute">
                                 </div>
                                 <div class="form-group">
                                     <label>GitHub Repo Id</label>
