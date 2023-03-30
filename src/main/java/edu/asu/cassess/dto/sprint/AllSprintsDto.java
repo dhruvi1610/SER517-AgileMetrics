@@ -26,4 +26,13 @@ public class AllSprintsDto {
 
   @JsonProperty("estimated_finish")
   private String estimatedFinish;
+
+  @JsonProperty("user_stories")
+  private UserStoryDto[] userStories;
+
+  @JsonProperty("total_points")
+  private Double totalPoints;
+
+  @JsonProperty("closed_points")
+  private Double closedPoints;
 }
