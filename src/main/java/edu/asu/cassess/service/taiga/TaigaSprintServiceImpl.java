@@ -4,15 +4,20 @@ import edu.asu.cassess.dto.ProjectCourseDto;
 import edu.asu.cassess.dto.sprint.AllSprintsDto;
 import edu.asu.cassess.dto.sprint.SprintDaysDto;
 import edu.asu.cassess.dto.sprint.SprintDto;
+import edu.asu.cassess.dto.sprint.UserStoryDto;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprint;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDays;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDaysId;
 import edu.asu.cassess.persist.repo.taiga.ITaigaSprintDaysRepository;
 import edu.asu.cassess.persist.repo.taiga.ITaigaSprintRepository;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -88,27 +93,50 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
   private void persistTaigaSprintsDetails(ProjectCourseDto projectCourseDto, HttpEntity<String> request, List<AllSprintsDto> allSprints) {
     List<TaigaSprint> taigaSprints = new ArrayList<>();
     List<TaigaSprintDays> taigaSprintDays = new ArrayList<>();
-    for(AllSprintsDto allSprintsDto : allSprints) {
+    for(AllSprintsDto sprintDto : allSprints) {
       ResponseEntity<SprintDto> responseEntity = null;
       try {
-        responseEntity = restTemplate.exchange(BASE_URL + "/" + allSprintsDto.getSprintId() + "/stats", HttpMethod.GET, request, SprintDto.class);
+        responseEntity = restTemplate.exchange(BASE_URL + "/" + sprintDto.getSprintId() + "/stats", HttpMethod.GET, request, SprintDto.class);
       } catch (Exception e) {
         e.printStackTrace();
       }
 
       if(responseEntity != null && responseEntity.getBody() != null) {
-        TaigaSprint taigaSprint = new TaigaSprint(allSprintsDto.getSprintId(), projectCourseDto.getProjectId(), projectCourseDto.getCourseName(), projectCourseDto.getTeamName(),
-            allSprintsDto.getSprintName(), allSprintsDto.getIsClosed(), LocalDate.parse(allSprintsDto.getEstimatedStart()), LocalDate.parse(allSprintsDto.getEstimatedFinish()));
+        TaigaSprint taigaSprint = new TaigaSprint(sprintDto.getSprintId(), projectCourseDto.getProjectId(), projectCourseDto.getCourseName(), projectCourseDto.getTeamName(),
+            sprintDto.getSprintName(), sprintDto.getIsClosed(), LocalDate.parse(sprintDto.getEstimatedStart()), LocalDate.parse(sprintDto.getEstimatedFinish()));
         taigaSprints.add(taigaSprint);
 
+        Double points = sprintDto.getTotalPoints();
+        Map<LocalDate, Double> fullBurndownMap = populatefullBurndownMap(sprintDto.getUserStories());
         for (SprintDaysDto item : responseEntity.getBody().getDays()) {
-          TaigaSprintDaysId taigaSprintsId = new TaigaSprintDaysId(allSprintsDto.getSprintId(), LocalDate.parse(item.getDate()));
-          taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints()));
+          LocalDate date = LocalDate.parse(item.getDate());
+          points = fullBurndownMap.containsKey(date) ? points - fullBurndownMap.get(date) : points;
+          TaigaSprintDaysId taigaSprintsId = new TaigaSprintDaysId(sprintDto.getSprintId(), date);
+          taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints(), points));
         }
       }
     }
 
     taigaSprintRepository.save(taigaSprints);
     taigaSprintDaysRepository.save(taigaSprintDays);
+  }
+
+  private Map<LocalDate, Double> populatefullBurndownMap(UserStoryDto[] userStories) {
+    Map<LocalDate, Double> map = new HashMap<>();
+
+    for(UserStoryDto userStory : userStories) {
+      if (userStory.getIsClosed()) {
+        Instant instant = Instant.parse(userStory.getFinishDate());
+        LocalDate finishedDate = LocalDate.ofInstant(instant, ZoneOffset.UTC);
+
+        if (map.containsKey(finishedDate)) {
+          map.put(finishedDate, map.get(finishedDate) + userStory.getPoints());
+        } else {
+          map.put(finishedDate, userStory.getPoints());
+        }
+      }
+    }
+
+    return map;
   }
 }
