@@ -23,4 +23,7 @@ public class TaigaSprintDays {
 
   @Column(name = "estimated_points")
   private Double estimatedPoints;
+
+  @Column(name = "full_burndown_points")
+  private Double fullBurndownPoints;
 }

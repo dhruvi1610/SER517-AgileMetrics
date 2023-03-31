@@ -1880,7 +1880,16 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
     }])
     .controller('TeamController', ['$scope', '$location', '$routeParams', 'courseService', 'teamService', 'userService', '$http', function ($scope, $location, $routeParams, courseService, teamService, userService, $http) {
         $scope.teamid = $routeParams.team_id;
-
+        $scope.arrlist = [{
+        "burndown": 1,
+        "name": "Partial Burndown"
+        }, {
+        "burndown": 2,
+        "name": "Total Burndown"
+        }, {
+        "burndown": 3,
+        "name": "Business value Burndown"
+        }];
 		var course = courseService.getCourse();
         $scope.courseid = courseService.getCourse();
         if (course == null) {
@@ -4690,9 +4699,12 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.team = {};
 
             $scope.teams = [];
+            $scope.isPrivateRepo = true;
+            
 
             $scope.message = "";
-
+            $scope.hasTaigaCustomAttribute = false;
+            $scope.enteredTaigaCustomAttribute = "Business Value";
             var gitHubInfoChanged = false;
 
             var taigaInfoChanged = false;
@@ -4718,6 +4730,13 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedRow = index;
                 $scope.selectedTeam = $scope.teams[index];
             };
+
+              $scope.toggleCustomAttributeFlag = function() {
+              hasTaigaCustomAttribute = !hasTaigaCustomAttribute;
+             $scope.toggleIsPrivateRepo = function() {
+              isPrivateRepo = !isPrivateRepo;
+            }
+
 
             $scope.saveTeam = function() {
                 if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
