@@ -867,6 +867,7 @@ CREATE TABLE `teams` (
   `github_repo_id` varchar(255) DEFAULT NULL,
   `slack_team_id` varchar(255) DEFAULT NULL,
   `taiga_project_slug` varchar(255) DEFAULT NULL,
+  `taiga_custom_attribute` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`team_name`),
   KEY `FKahkmfgmwesgwhj2iu5yhhhmie` (`course`),
   CONSTRAINT `FKahkmfgmwesgwhj2iu5yhhhmie` FOREIGN KEY (`course`) REFERENCES `courses` (`course`)
