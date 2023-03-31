@@ -1880,7 +1880,16 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
     }])
     .controller('TeamController', ['$scope', '$location', '$routeParams', 'courseService', 'teamService', 'userService', '$http', function ($scope, $location, $routeParams, courseService, teamService, userService, $http) {
         $scope.teamid = $routeParams.team_id;
-
+        $scope.arrlist = [{
+        "burndown": 1,
+        "name": "Partial Burndown"
+        }, {
+        "burndown": 2,
+        "name": "Total Burndown"
+        }, {
+        "burndown": 3,
+        "name": "Business value Burndown"
+        }];
 		var course = courseService.getCourse();
         $scope.courseid = courseService.getCourse();
         if (course == null) {
