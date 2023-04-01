@@ -25,6 +25,9 @@ public class Course {
     @Column(name = "taiga_token")
     protected String taiga_token;
 
+    @Column(name = "taiga_refresh_token")
+    protected String taigaRefreshToken;
+
     @Column(name = "start_date")
     protected Date start_date;
 
@@ -81,6 +84,14 @@ public class Course {
 
     public void setTaiga_token(String taiga_token) {
         this.taiga_token = taiga_token;
+    }
+
+    public String getTaigaRefreshToken() {
+        return taigaRefreshToken;
+    }
+
+    public void setTaigaRefreshToken(String taigaRefreshToken) {
+        this.taigaRefreshToken = taigaRefreshToken;
     }
 
     public List<Team> getTeams() {
