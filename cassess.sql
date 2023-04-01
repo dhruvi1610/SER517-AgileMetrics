@@ -460,6 +460,7 @@ CREATE TABLE `project` (
   `id` bigint DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `slug` varchar(255) NOT NULL,
+  `custom_attribute` varchar(255) NOT NULL,
   PRIMARY KEY (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -470,7 +471,7 @@ CREATE TABLE `project` (
 
 LOCK TABLES `project` WRITE;
 /*!40000 ALTER TABLE `project` DISABLE KEYS */;
-INSERT INTO `project` VALUES (607451,'SER517 Spring2023 Team1 Agile Metrics.','dhruvimodii-agile-metrics-ser-517'),(258628,'Ahrensburg','ser316asu-2018-ahrensburg'),(258551,'Babelsberg','ser316asu-2018-babelsberg'),(258941,'Berg','ser316asu-2018-berg'),(258513,'Bergedorf','ser316asu-2018-bergedorf'),(258659,'Blomendal','ser316asu-2018-blomendal'),(258483,'Braunfels','ser316asu-2018-braunfels'),(258381,'Breitenburg','ser316asu-2018-breitenburg'),(258484,'Cochem','ser316asu-2018-cochem'),(258520,'Eltz','ser316asu-2018-eltz'),(258660,'Gluecksburg','ser316asu-2018-gluecksburg'),(258695,'Goslar','ser316asu-2018-goslar'),(258661,'Heidelberger','ser316asu-2018-heidelberger'),(258663,'Hohenzollern','ser316asu-2018-hohenzollern'),(258550,'Lichtenstein','ser316asu-2018-lichtenstein'),(258522,'Loewenburg','ser316asu-2018-loewenburg'),(258545,'Marksburg','ser316asu-2018-marksburg'),(258554,'Moritzburg','ser316asu-2018-moritzburg'),(258633,'Neuschwanstein','ser316asu-2018-neuschwanstein'),(258699,'Nordkirchen','ser316asu-2018-nordkirchen'),(258697,'Sanssouci','ser316asu-2018-sanssouci'),(258634,'Schwerin','ser316asu-2018-schwerin'),(258662,'Stahleck','ser316asu-2018-stahleck'),(252643,'CAssess - Continuous Assessment Platform','tjjohn1-cassess-continuous-assessment-platform'),(161737,'SER 401 Capstone Project Team 2','tjjohn1-ser-401-capstone-project-team-2');
+INSERT INTO `project` VALUES (607451,'SER517 Spring2023 Team1 Agile Metrics.','dhruvimodii-agile-metrics-ser-517','NA'),(258628,'Ahrensburg','ser316asu-2018-ahrensburg','NA'),(258551,'Babelsberg','ser316asu-2018-babelsberg','NA'),(258941,'Berg','ser316asu-2018-berg','NA'),(258513,'Bergedorf','ser316asu-2018-bergedorf','NA'),(258659,'Blomendal','ser316asu-2018-blomendal','NA'),(258483,'Braunfels','ser316asu-2018-braunfels','NA'),(258381,'Breitenburg','ser316asu-2018-breitenburg','NA'),(258484,'Cochem','ser316asu-2018-cochem','NA'),(258520,'Eltz','ser316asu-2018-eltz','NA'),(258660,'Gluecksburg','ser316asu-2018-gluecksburg','NA'),(258695,'Goslar','ser316asu-2018-goslar','NA'),(258661,'Heidelberger','ser316asu-2018-heidelberger','NA'),(258663,'Hohenzollern','ser316asu-2018-hohenzollern','NA'),(258550,'Lichtenstein','ser316asu-2018-lichtenstein','NA'),(258522,'Loewenburg','ser316asu-2018-loewenburg','NA'),(258545,'Marksburg','ser316asu-2018-marksburg','NA'),(258554,'Moritzburg','ser316asu-2018-moritzburg','NA'),(258633,'Neuschwanstein','ser316asu-2018-neuschwanstein','NA'),(258699,'Nordkirchen','ser316asu-2018-nordkirchen','NA'),(258697,'Sanssouci','ser316asu-2018-sanssouci','NA'),(258634,'Schwerin','ser316asu-2018-schwerin','NA'),(258662,'Stahleck','ser316asu-2018-stahleck','NA'),(252643,'CAssess - Continuous Assessment Platform','tjjohn1-cassess-continuous-assessment-platform','NA'),(161737,'SER 401 Capstone Project Team 2','tjjohn1-ser-401-capstone-project-team-2','NA');
 /*!40000 ALTER TABLE `project` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -867,7 +868,6 @@ CREATE TABLE `teams` (
   `github_repo_id` varchar(255) DEFAULT NULL,
   `slack_team_id` varchar(255) DEFAULT NULL,
   `taiga_project_slug` varchar(255) DEFAULT NULL,
-  `taiga_custom_attribute` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`team_name`),
   KEY `FKahkmfgmwesgwhj2iu5yhhhmie` (`course`),
   CONSTRAINT `FKahkmfgmwesgwhj2iu5yhhhmie` FOREIGN KEY (`course`) REFERENCES `courses` (`course`)
