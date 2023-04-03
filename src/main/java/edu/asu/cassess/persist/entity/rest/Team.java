@@ -38,6 +38,9 @@ public class Team {
     @Column(name = "github_owner")
     protected String github_owner;
 
+    @Column(name = "taiga_custom_attribute")
+    protected String taiga_custom_attribute;
+
     public Team() {
 
     }
@@ -124,6 +127,14 @@ public class Team {
             channel.setTeam_name(TEAM_STRING);
         }
         this.channels = channels;
+    }
+
+    public String getTaiga_custom_attribute() {
+        return taiga_custom_attribute;
+    }
+
+    public void setTaiga_custom_attribute(String taiga_custom_attribute) {
+        this.taiga_custom_attribute = taiga_custom_attribute;
     }
 
 }

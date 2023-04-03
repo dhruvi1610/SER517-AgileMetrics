@@ -4762,6 +4762,11 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                     $scope.team.taiga_project_slug = $scope.enteredTaigaSlug;
                                     $scope.team.github_owner = $scope.enteredGitHubOwner;
                                     $scope.team.github_token = $scope.enteredGitHubToken;
+                                    if($scope.enteredTaigaCustomAttribute)
+                                        $scope.team.taiga_custom_attribute = $scope.enteredTaigaCustomAttribute;
+                                    else{
+                                        $scope.team.taiga_custom_attribute = "N/A";
+                                    }
                                     $scope.team.github_repo_id = $scope.enteredGitHubRepo;
                                     $scope.team.slack_team_id = $scope.enteredSlackTeam;
                                     var exists = false;
@@ -4813,6 +4818,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                 $scope.enteredTaigaSlug = teamsArray[i].taiga_project_slug;
                                 $scope.enteredGitHubOwner = teamsArray[i].github_owner;
                                 $scope.enteredGitHubToken = teamsArray[i].github_token;
+                                if(teamsArray[i].taiga_custom_attribute)
+                                    $scope.enteredTaigaCustomAttribute = teamsArray[i].taiga_custom_attribute;
                                 $scope.enteredGitHubRepo = teamsArray[i].github_repo_id;
                                 $scope.enteredSlackTeam = teamsArray[i].slack_team_id;
                                 $scope.saveTeam();

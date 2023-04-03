@@ -38,6 +38,7 @@
                                     <th style="width:5%; overflow:hidden; white-space: nowrap;"><span>GH</span></th>
                                     <th style="width:15%; white-space: nowrap;">Team Name</th>
                                     <th style="width:20%; white-space: nowrap;">Taiga Slug</th>
+                                    <th style="width:20%;">Taiga Custom Attribute</th>
                                     <th style="width:15%;">GitHub Owner</th>
                                     <th style="width:15%; white-space: nowrap;">GitHub Repo</th>
                                     <th style="width:20%; white-space: nowrap;">GitHub Token</th>
@@ -57,6 +58,7 @@
                                             </td>
                                             <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.team_name}}</td>
                                             <td style="width:20%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.taiga_project_slug}}</td>
+                                            <td style="width:20%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.taiga_custom_attribute}}</td>
                                             <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.github_owner}}</td>
                                             <td style="width:15%; height: 20px; overflow:hidden; text-overflow: ellipsis;">{{team.github_repo_id}}</td>
                                             <td style="width:20%; height: 20px; word-break: break-all; overflow:hidden; text-overflow: ellipsis;">{{team.github_token}}</td>
@@ -88,10 +90,6 @@
                                 <div class="form-group">
                                     <label>GitHub Owner</label>
                                     <input type="text" class="form-control"ng-model="enteredGitHubOwner" placeholder="Enter GitHub owner" ng-required="true" ng-change="setGitHubUnverified()">
-                                </div>
-                                 <div ng-show="hasTaigaCustomAttribute" class="form-group">
-                                    <label>Taiga Custom Attribute</label>
-                                    <input type="text" class="form-control" ng-model="enteredTaigaCustomAttribute">
                                 </div>
                                 <div class="form-group">
                                     <label>GitHub Repo Id</label>
