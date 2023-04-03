@@ -1903,6 +1903,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
         $scope.commitMaxY = 0;
         $scope.selectedSprint;
+        $scope.taigaCharts;
+        $scope.selectedTaigaChart;
 
         //console.log("team: " + $scope.teamid);
 
@@ -1935,6 +1937,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 headers: {'courseName': course, 'teamName': $scope.teamid}
             }).then(function (response) {
                 $scope.sprints = response.data;
+                $scope.taigaCharts = ['Partial', 'Full', 'Business'];
+                $scope.selectedTaigaChart = $scope.taigaCharts[0];
                 $scope.selectedSprint = response.data[0];
                 getTaigaSprints();
             }, function (response) {
@@ -1945,16 +1949,16 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
         function getTaigaSprints() {
             if(!$scope.selectedSprint) {
-              $scope.dataForTaigaBurndown = getdataForTaigaBurndown([]);
+              $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
               return;
             }
 
             $http({
                 url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
                 method: "GET",
-//                headers: {'sprintName': $scope.selectedSprint}
             }).then(function (response) {
-                $scope.dataForTaigaBurndown = getdataForTaigaBurndown(response.data);
+                $scope.sprintDays = response.data;
+                $scope.dataForTaigaBurndown = getTaigaDataByChartType();
                 let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
                 $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
             }, function (response) {
@@ -1991,12 +1995,17 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             },
         };
 
+        $scope.onTaigaChartChange = function(chart) {
+          $scope.selectedTaigaChart = chart;
+          $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+        }
+
         $scope.onSprintChange = function(sprint) {
           $scope.selectedSprint = sprint;
           getTaigaSprints();
         }
 
-        function getdataForTaigaBurndown(array){
+        function getdataForTaigaPartialBurndown(array){
             var data = []; var actual = []; var estimated = [];
 
             for (let item of array){
@@ -2010,6 +2019,35 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             data.push({color: "#a8e440", key: "ACTUAL", values: actual, strokeWidth: 2, area: true});
             data.push({color: "#c1d9ba", key: "ESTIMATED", values: estimated, strokeWidth: 2, area: true});
             return data;
+        }
+
+        function getdataForTaigaFullBurndown(array){
+            var data = [];  var fullBurndown = [];
+
+            for (let item of array){
+              let dateArray = item.taigaSprintDaysId.date;
+              let date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]).getTime();
+
+              fullBurndown.push([date, item.fullBurndownPoints]);
+            }
+
+            data.push({color: "#a8e440", key: "FULL BURNDOWN", values: fullBurndown, strokeWidth: 2, area: true});
+            return data;
+        }
+
+        function getdataForTaigaBusinessValue(array){
+            var data = [];  var businessValue = [];
+
+            data.push({color: "#a8e440", key: "BUSINESS VALUE", values: businessValue, strokeWidth: 2, area: true});
+            return data;
+        }
+
+        function getTaigaDataByChartType() {
+            if($scope.selectedTaigaChart === 'Partial')
+                return getdataForTaigaPartialBurndown($scope.sprintDays);
+            if($scope.selectedTaigaChart === 'Full')
+                return getdataForTaigaFullBurndown($scope.sprintDays);
+            return $scope.dataForTaigaBurndown = getdataForTaigaBusinessValue($scope.sprintDays);
         }
 
         function getTaigaCourseWeightFreq() {
@@ -4699,12 +4737,9 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.team = {};
 
             $scope.teams = [];
-            $scope.isPrivateRepo = true;
-            
 
             $scope.message = "";
-            $scope.hasTaigaCustomAttribute = false;
-            $scope.enteredTaigaCustomAttribute = "Business Value";
+
             var gitHubInfoChanged = false;
 
             var taigaInfoChanged = false;
@@ -4730,13 +4765,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedRow = index;
                 $scope.selectedTeam = $scope.teams[index];
             };
-
-              $scope.toggleCustomAttributeFlag = function() {
-              hasTaigaCustomAttribute = !hasTaigaCustomAttribute;
-             $scope.toggleIsPrivateRepo = function() {
-              isPrivateRepo = !isPrivateRepo;
-            }
-
 
             $scope.saveTeam = function() {
                 if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){

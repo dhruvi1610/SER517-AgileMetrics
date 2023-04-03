@@ -67,13 +67,13 @@
                         <div ng-controller='TeamController'>
                             <nvd3 options='optionsForTaigaTeamTasks' data='dataForTaigaTeamTasks'></nvd3>
 
-                            <h3>Burdown Chart</h3><br>
-                            <label style="color: black">Select Type of chart: </label>
-                            <select name="burndown" ng-model="burndownSelect">
-                                <option value="">--Select Type of burndown--</option>
-                                <option ng-repeat="option in arrlist" value="{{option.burndown}}">{{option.name}}</option>
-                            </select>
-                        </div><br /><br />
+
+                            <h3>Burndown Chart</h3><br>
+                            <label style="color: black">Select chart: </label>
+                            <select class="select_style"  ng-model="selectedTaigaChart" ng-options="item for item in taigaCharts"
+                                    ng-change="onTaigaChartChange(selectedTaigaChart)">
+                            </select> <br>
+
                             <label style="color: black">Select sprint: </label>
                             <select class="select_style"  ng-model="selectedSprint" ng-options="item.sprintName for item in sprints"
                                     ng-change="onSprintChange(selectedSprint)">
