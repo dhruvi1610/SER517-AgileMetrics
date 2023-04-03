@@ -12,4 +12,6 @@ public class ProjectCourseDto {
   private String courseName;
   private Long projectId;
   private String taigaToken;
+  //private String taigaCustomAttribute;
+
 }
