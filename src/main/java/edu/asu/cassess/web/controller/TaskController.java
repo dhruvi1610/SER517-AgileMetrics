@@ -50,22 +50,16 @@ public class TaskController {
 	}
 
     @Scheduled(cron = "${github.cron.expression}")
-    //@Scheduled(fixedRate = 10000)
     public void GitHubCommits() {
         List<Team> teams = teamsService.listReadAll();
         for(Team team: teams){
-            try {
-                Course course = (Course) coursesService.read(team.getCourse());
-                gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Course course = (Course) coursesService.read(team.getCourse());
+            gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
         }
         System.out.println("github cron ran as scheduled");
     }
 
     @Scheduled(cron = "${slack.cron.expression}")
-    //@Scheduled(fixedRate = 10000)
     public void SlackMessages() {
     List<CourseList> courseList = coursesService.listGetCourses();
         for (CourseList course : courseList) {
@@ -75,9 +69,14 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${taiga.sprints.cron.expression}")
-    //@Scheduled(fixedRate = 10000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");
+    }
+
+    @Scheduled(cron = "${taiga.tokens.cron.expression}")
+    public void RefreshTaigaTokens() {
+        coursesService.refreshTaigaTokes();
+        System.out.println("refresh taiga tokens cron ran as scheduled");
     }
 }

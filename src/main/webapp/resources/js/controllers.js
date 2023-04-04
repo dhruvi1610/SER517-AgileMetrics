@@ -4737,9 +4737,12 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.team = {};
 
             $scope.teams = [];
+            $scope.isPrivateRepo = true;
+            
 
             $scope.message = "";
-
+            $scope.hasTaigaCustomAttribute = false;
+            $scope.enteredTaigaCustomAttribute = "Business Value";
             var gitHubInfoChanged = false;
 
             var taigaInfoChanged = false;
@@ -4766,6 +4769,14 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedTeam = $scope.teams[index];
             };
 
+              $scope.toggleCustomAttributeFlag = function() {
+              hasTaigaCustomAttribute = !hasTaigaCustomAttribute;
+              }
+             $scope.toggleIsPrivateRepo = function() {
+              isPrivateRepo = !isPrivateRepo;
+            }
+
+
             $scope.saveTeam = function() {
                 if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
                     if($scope.enteredTaigaSlug != null && $scope.enteredTaigaSlug != ''){
@@ -4790,11 +4801,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                     $scope.team.taiga_project_slug = $scope.enteredTaigaSlug;
                                     $scope.team.github_owner = $scope.enteredGitHubOwner;
                                     $scope.team.github_token = $scope.enteredGitHubToken;
-                                    if($scope.enteredTaigaCustomAttribute)
-                                        $scope.team.taiga_custom_attribute = $scope.enteredTaigaCustomAttribute;
-                                    else{
-                                        $scope.team.taiga_custom_attribute = "N/A";
-                                    }
                                     $scope.team.github_repo_id = $scope.enteredGitHubRepo;
                                     $scope.team.slack_team_id = $scope.enteredSlackTeam;
                                     var exists = false;
@@ -4846,8 +4852,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                 $scope.enteredTaigaSlug = teamsArray[i].taiga_project_slug;
                                 $scope.enteredGitHubOwner = teamsArray[i].github_owner;
                                 $scope.enteredGitHubToken = teamsArray[i].github_token;
-                                if(teamsArray[i].taiga_custom_attribute)
-                                    $scope.enteredTaigaCustomAttribute = teamsArray[i].taiga_custom_attribute;
                                 $scope.enteredGitHubRepo = teamsArray[i].github_repo_id;
                                 $scope.enteredSlackTeam = teamsArray[i].slack_team_id;
                                 $scope.saveTeam();
@@ -5141,6 +5145,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     }).then(function (response) {
                         $scope.message = "Taiga Success: " + response.status;
                         $scope.enteredTaigaToken = response.data.auth_token;
+                        $scope.enteredTaigaRefreshToken = response.data.refresh;
                         $scope.showTaigaForm = false;
                         $scope.taigaUsername = "";
                         $scope.taigaPassword = "";
@@ -5155,7 +5160,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.saveCourse = function() {
                 if($scope.enteredCourseName != null && $scope.enteredCourseName != '') {
                     if ($scope.enteredEndDate != null && $scope.enteredEndDate != '') {
-                        if ($scope.enteredTaigaToken != null && $scope.enteredTaigaToken != '') {
+                        if ($scope.enteredTaigaToken != null && $scope.enteredTaigaToken != '' && $scope.enteredTaigaRefreshToken != null && $scope.enteredTaigaRefreshToken != '') {
                             $rootScope.coursePackage.course = $scope.enteredCourseName;
                             var dateEntered = new Date($scope.enteredEndDate);
                             dateEntered.setDate(dateEntered.getDate());
@@ -5168,13 +5173,14 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                 }
                             }
                             $rootScope.coursePackage.taiga_token = $scope.enteredTaigaToken;
+                            $rootScope.coursePackage.taigaRefreshToken = $scope.enteredTaigaRefreshToken;
                             $rootScope.coursePackage.slack_token = $scope.enteredSlackToken;
                             courseCreateService.setCourse($rootScope.coursePackage.course);
                             //console.log("saveCourse: " + $rootScope.coursePackage.course);
                             $scope.message = 'Course ' + $scope.enteredCourseName + ' successfuly saved';
                             $scope.clearCourseForm();
                         } else {
-                            $scope.message = 'Please Enter Taiga token prior to saving a Course';
+                            $scope.message = 'Please Enter Taiga tokens prior to saving a Course';
                         }
                     } else {
                         $scope.message = 'Please Enter End date prior to saving a Course';
@@ -5190,6 +5196,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 returnedDate.setDate(returnedDate.getDate() + 1);
                 $scope.enteredEndDate = returnedDate;
                 $scope.enteredTaigaToken = $scope.coursePackage.taiga_token;
+                $scope.enteredTaigaRefreshToken = $scope.coursePackage.taigaRefreshToken;
                 $scope.enteredSlackToken = $scope.coursePackage.slack_token;
             };
 
@@ -5197,6 +5204,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.enteredCourseName = '';
                 $scope.enteredEndDate = '';
                 $scope.enteredTaigaToken = '';
+                $scope.enteredTaigaRefreshToken = '';
                 $scope.enteredSlackToken = '';
                 $scope.showTaigaForm = false;
                 $scope.taigaUsername = "";
@@ -5211,6 +5219,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     "end_date": '',
                     "slack_token": '',
                     "taiga_token": '',
+                    "taigaRefreshToken": '',
                     "teams": null
                     //"teams": [{
                     //"taiga_project_slug": '',
