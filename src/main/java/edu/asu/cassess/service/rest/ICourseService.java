@@ -21,6 +21,8 @@ public interface ICourseService {
 
     List<CourseList> listGetCourses();
 
+    List<Course> refreshTaigaTokes();
+
     JSONObject listCreate(List<Course> courses);
 
     JSONObject listUpdate(List<Course> courses);
