@@ -5329,12 +5329,89 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             $scope.getAsText = function(fileToRead) {
                 var reader = new FileReader();
-                reader.onload = $scope.loadHandler;
+                if(fileToRead.name.split('.').pop().toUpperCase() == 'JSON')
+                    reader.onload = $scope.loadHandlerJSON;
+                else if(fileToRead.name.split('.').pop().toUpperCase() == 'CSV')
+                    reader.onload = $scope.loadHandlerCSV;
                 reader.onerror = $scope.errorHandler;
                 reader.readAsText(fileToRead);
             };
 
-            $scope.loadHandler = function(event) {
+            $scope.loadHandlerCSV = function(event) {
+                var csv = event.target.result;
+                $scope.processDataCSV(csv);
+            };
+            function CSVToArray(strData, strDelimiter) {
+                 strDelimiter = (strDelimiter || ",");
+                 var objPattern = new RegExp((
+                 "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+                 "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+                 "([^\"\\" + strDelimiter + "\\r\\n]*))"), "gi");
+                 var arrData = [[]];
+                 var arrMatches = null;
+                 while (arrMatches = objPattern.exec(strData)) {
+                     var strMatchedDelimiter = arrMatches[1];
+                     if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+                         arrData.push([]);
+                     }
+                     if (arrMatches[2]) {
+                         var strMatchedValue = arrMatches[2].replace(
+                             new RegExp("\"\"", "g"), "\"");
+                     } else {
+                         var strMatchedValue = arrMatches[3];
+                     }
+                     arrData[arrData.length - 1].push(strMatchedValue);
+                 }
+                 return (arrData);
+             }
+            $scope.CSV2JSON = function(csv) {
+                var array = CSVToArray(csv);
+                var objArray = [];
+                for (var i = 1; i < array.length; i++) {
+                    objArray[i - 1] = {};
+                    for (var k = 0; k < array[0].length && k < array[i].length; k++) {
+                        var key = array[0][k];
+                        objArray[i - 1][key] = array[i][k]
+                    }
+                }
+                var json = JSON.stringify(objArray);
+                var str = json.replace(/},/g, "},\r\n");
+                return str;
+            }
+            $scope.processDataCSV = function(csv) {
+                var json = $scope.CSV2JSON(csv);
+                $scope.saveCourseJSON(json);
+            }
+
+            $scope.saveCourseJSON = function(json) {
+                const courseArray = JSON.parse(json)
+                if(courseArray[0]) {
+                    if (courseArray[0].course) {
+                        if (courseArray[0].course != null && courseArray[0].course != '') {
+                            var lastIndex = -1;
+                            var j = 0;
+                            for (var i in courseArray) {
+                                    $rootScope.coursePackage.course = courseArray[i].course;
+                                $rootScope.coursePackage.end_date = courseArray[i].end_date;
+                                $rootScope.coursePackage.taiga_token = courseArray[i].taiga_token;
+                                $rootScope.coursePackage.taigaRefreshToken = courseArray[i].taiga_refresh_token;
+                                $rootScope.coursePackage.slack_token = courseArray[i].slack_token;
+                                courseCreateService.setCourse($rootScope.coursePackage.course);
+                                $scope.message = 'Course ' + $rootScope.coursePackage.course + ' successfully uploaded via CSV';
+                                $scope.$apply();
+                            }
+                        } else {
+                            $scope.message = 'No Course data in uploaded csv';
+                        }
+                    } else {
+                        $scope.message = 'No Course data in uploaded csv';
+                    }
+                } else {
+                    $scope.message = 'No Course data in uploaded csv';
+                }
+            };
+
+            $scope.loadHandlerJSON = function(event) {
                 var json = event.target.result;
                 $scope.processData(json);
             };
