@@ -2038,6 +2038,13 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         function getdataForTaigaBusinessValue(array){
             var data = [];  var businessValue = [];
 
+            for (let item of array){
+              let dateArray = item.taigaSprintDaysId.date;
+              let date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]).getTime();
+
+              businessValue.push([date, item.customAttributePoints]);
+            }
+
             data.push({color: "#a8e440", key: "BUSINESS VALUE", values: businessValue, strokeWidth: 2, area: true});
             return data;
         }
