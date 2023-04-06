@@ -26,4 +26,7 @@ public class TaigaSprintDays {
 
   @Column(name = "full_burndown_points")
   private Double fullBurndownPoints;
+
+  @Column(name = "custom_attribute_points")
+  private Double customAttributePoints;
 }
