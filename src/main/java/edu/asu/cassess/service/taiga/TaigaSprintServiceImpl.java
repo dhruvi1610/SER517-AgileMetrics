@@ -1,10 +1,7 @@
 package edu.asu.cassess.service.taiga;
 
 import edu.asu.cassess.dto.ProjectCourseDto;
-import edu.asu.cassess.dto.sprint.AllSprintsDto;
-import edu.asu.cassess.dto.sprint.SprintDaysDto;
-import edu.asu.cassess.dto.sprint.SprintDto;
-import edu.asu.cassess.dto.sprint.UserStoryDto;
+import edu.asu.cassess.dto.sprint.*;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprint;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDays;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDaysId;
@@ -41,6 +38,7 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
 
   private static final String BASE_URL = "https://api.taiga.io/api/v1/milestones";
   private final RestTemplate restTemplate;
+  private static final String ALL_CUSTOM_ATT_BASE_URL = "https://api.taiga.io/api/v1/userstory-custom-attributes?project=";
 
   public TaigaSprintServiceImpl() {
     this.restTemplate = new RestTemplate();
@@ -112,7 +110,7 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
           LocalDate date = LocalDate.parse(item.getDate());
           points = fullBurndownMap.containsKey(date) ? points - fullBurndownMap.get(date) : points;
           TaigaSprintDaysId taigaSprintsId = new TaigaSprintDaysId(sprintDto.getSprintId(), date);
-          taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints(), points));
+          //taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints(), points));
         }
       }
     }
@@ -139,4 +137,23 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
 
     return map;
   }
+  private Map<String, Long> getAllCustomAttributes(Long projectId, HttpEntity<String> request) {
+    Map<String, Long> resultMap = new HashMap<>();
+    ResponseEntity<CustomAttributesDto[]> responseEntity = null;
+    try {
+      responseEntity = restTemplate.exchange(ALL_CUSTOM_ATT_BASE_URL + projectId, HttpMethod.GET, request, CustomAttributesDto[].class);
+      if(responseEntity.getBody() != null) {
+        for(CustomAttributesDto item : responseEntity.getBody()) {
+          resultMap.put(item.getAttributeName(), item.getAttributeId());
+        }
+      }
+      return  resultMap;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return resultMap;
+    }
+  }
+
+
+
 }
