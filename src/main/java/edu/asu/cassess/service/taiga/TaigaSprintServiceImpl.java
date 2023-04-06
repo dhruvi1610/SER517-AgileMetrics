@@ -1,7 +1,13 @@
 package edu.asu.cassess.service.taiga;
 
 import edu.asu.cassess.dto.ProjectCourseDto;
-import edu.asu.cassess.dto.sprint.*;
+import edu.asu.cassess.dto.sprint.AllSprintsDto;
+import edu.asu.cassess.dto.sprint.CustomAttributesDto;
+import edu.asu.cassess.dto.sprint.CustomAttributesValuesDto;
+import edu.asu.cassess.dto.sprint.PointsDto;
+import edu.asu.cassess.dto.sprint.SprintDaysDto;
+import edu.asu.cassess.dto.sprint.SprintDto;
+import edu.asu.cassess.dto.sprint.UserStoryDto;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprint;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDays;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDaysId;
@@ -15,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -35,10 +42,11 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
 
   @Autowired
   ITaigaSprintDaysRepository taigaSprintDaysRepository;
-
-  private static final String BASE_URL = "https://api.taiga.io/api/v1/milestones";
-  private final RestTemplate restTemplate;
+  private static final String DEBT_ESTIMATION = "TechnicalDebtEstimation";
+  private static final String SPRINT_BASE_URL = "https://api.taiga.io/api/v1/milestones";
+  private static final String CUSTOM_ATT_BASE_URL = "https://api.taiga.io/api/v1/userstories/custom-attributes-values/";
   private static final String ALL_CUSTOM_ATT_BASE_URL = "https://api.taiga.io/api/v1/userstory-custom-attributes?project=";
+  private final RestTemplate restTemplate;
 
   public TaigaSprintServiceImpl() {
     this.restTemplate = new RestTemplate();
@@ -46,7 +54,8 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
 
   @Override
   public List<TaigaSprint> getSprintNames(String courseName, String teamName) {
-    return taigaSprintRepository.findByCourseNameAndTeamName(courseName, teamName);
+    return taigaSprintRepository.findByCourseNameAndTeamNameOrderBySprintNameDesc(courseName, teamName);
+
   }
 
   @Override
@@ -73,7 +82,7 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
       HttpEntity<String> request = new HttpEntity<>(headers);
       ResponseEntity<AllSprintsDto[]> responseEntity = null;
       try {
-        responseEntity = restTemplate.exchange(BASE_URL + "?project=" + projectCourseDto.getProjectId(), HttpMethod.GET, request, AllSprintsDto[].class);
+        responseEntity = restTemplate.exchange(SPRINT_BASE_URL + "?project=" + projectCourseDto.getProjectId(), HttpMethod.GET, request, AllSprintsDto[].class);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -94,7 +103,7 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
     for(AllSprintsDto sprintDto : allSprints) {
       ResponseEntity<SprintDto> responseEntity = null;
       try {
-        responseEntity = restTemplate.exchange(BASE_URL + "/" + sprintDto.getSprintId() + "/stats", HttpMethod.GET, request, SprintDto.class);
+        responseEntity = restTemplate.exchange(SPRINT_BASE_URL + "/" + sprintDto.getSprintId() + "/stats", HttpMethod.GET, request, SprintDto.class);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -104,13 +113,17 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
             sprintDto.getSprintName(), sprintDto.getIsClosed(), LocalDate.parse(sprintDto.getEstimatedStart()), LocalDate.parse(sprintDto.getEstimatedFinish()));
         taigaSprints.add(taigaSprint);
 
-        Double points = sprintDto.getTotalPoints();
-        Map<LocalDate, Double> fullBurndownMap = populatefullBurndownMap(sprintDto.getUserStories());
+        Double fullburndownPoints = sprintDto.getTotalPoints();
+        Double customAttributePoints = sprintDto.getTotalPoints();
+        Map<LocalDate, PointsDto> userStoryMap = populateUserStoryMap(sprintDto.getUserStories(), projectCourseDto.getProjectId(), request);
         for (SprintDaysDto item : responseEntity.getBody().getDays()) {
           LocalDate date = LocalDate.parse(item.getDate());
-          points = fullBurndownMap.containsKey(date) ? points - fullBurndownMap.get(date) : points;
+          if(userStoryMap.containsKey(date)) {
+            fullburndownPoints -= userStoryMap.get(date).getFullBurndownPoints();
+            customAttributePoints -= userStoryMap.get(date).getCustomAttributePoints();
+          }
           TaigaSprintDaysId taigaSprintsId = new TaigaSprintDaysId(sprintDto.getSprintId(), date);
-          //taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints(), points));
+          taigaSprintDays.add(new TaigaSprintDays(taigaSprintsId, item.getActualPoints(), item.getEstimatedPoints(), fullburndownPoints, customAttributePoints));
         }
       }
     }
@@ -119,24 +132,28 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
     taigaSprintDaysRepository.save(taigaSprintDays);
   }
 
-  private Map<LocalDate, Double> populatefullBurndownMap(UserStoryDto[] userStories) {
-    Map<LocalDate, Double> map = new HashMap<>();
+  private Map<LocalDate, PointsDto> populateUserStoryMap(UserStoryDto[] userStories, Long projectId, HttpEntity<String> request) {
+    Map<LocalDate, PointsDto> resultMap = new HashMap<>();
+    Map<String, Long> allAttributesMap = getAllCustomAttributes(projectId, request);
 
     for(UserStoryDto userStory : userStories) {
-      if (userStory.getIsClosed()) {
+      if (Boolean.TRUE.equals(userStory.getIsClosed())) {
         Instant instant = Instant.parse(userStory.getFinishDate());
         LocalDate finishedDate = LocalDate.ofInstant(instant, ZoneOffset.UTC);
+        Double debtEstimationValue = getDebtEstimationValue(userStory.getStoryId(), allAttributesMap.get(DEBT_ESTIMATION), request);
 
-        if (map.containsKey(finishedDate)) {
-          map.put(finishedDate, map.get(finishedDate) + userStory.getPoints());
-        } else {
-          map.put(finishedDate, userStory.getPoints());
+        if(!resultMap.containsKey(finishedDate)) {
+          resultMap.put(finishedDate, new PointsDto(0.0, 0.0));
         }
+        PointsDto pointsDto = resultMap.get(finishedDate);
+        pointsDto.setFullBurndownPoints(pointsDto.getFullBurndownPoints() + userStory.getPoints());
+        pointsDto.setCustomAttributePoints(pointsDto.getCustomAttributePoints() + debtEstimationValue);
       }
     }
 
-    return map;
+    return resultMap;
   }
+
   private Map<String, Long> getAllCustomAttributes(Long projectId, HttpEntity<String> request) {
     Map<String, Long> resultMap = new HashMap<>();
     ResponseEntity<CustomAttributesDto[]> responseEntity = null;
@@ -154,6 +171,18 @@ public class TaigaSprintServiceImpl implements ITaigaSprintService{
     }
   }
 
-
-
+  private Double getDebtEstimationValue(Long storyId, Long debtEstimationId, HttpEntity<String> request) {
+    ResponseEntity<CustomAttributesValuesDto> responseEntity = null;
+    Double result = 0.0;
+    try {
+      responseEntity = restTemplate.exchange(CUSTOM_ATT_BASE_URL + storyId, HttpMethod.GET, request, CustomAttributesValuesDto.class);
+      if(responseEntity.getBody() != null) {
+        result = responseEntity.getBody().getCustomAttributesValues().get(debtEstimationId);
+      }
+      return Objects.isNull(result) ? 0.0 : result;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return result;
+    }
+  }
 }
