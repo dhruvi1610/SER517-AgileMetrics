@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserStoryDto {
 
+  @JsonProperty("id")
+  private Long storyId;
+
   @JsonProperty("is_closed")
   private Boolean isClosed;
 
