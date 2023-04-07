@@ -1903,68 +1903,88 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
         $scope.commitMaxY = 0;
         $scope.selectedSprint;
-        $scope.taigaCharts;
-        $scope.selectedTaigaChart;
+       $scope.taigaCharts = ['Partial', 'Full'];
+               $scope.selectedTaigaChart;
+               $scope.customAttribute;
+
 
         //console.log("team: " + $scope.teamid);
 
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8";
 
         $http({
-            url: './check_teamaccess',
-            method: "GET",
-            headers: {
-                'course': course,
-                'team': $scope.teamid,
-                'login': userService.getUser(),
-                'auth': userService.getAuth()
-            }
-        }).then(function (response) {
-            //console.log("Worked!");
-            //console.log(response.data);
-            if (response.data == false) {
-                $location.path('/home');
-            } else {
-                getTaigaCourseWeightFreq();
-                getTaigaSprintNames();
-            }
-        });
+                    url: './check_teamaccess',
+                    method: "GET",
+                    headers: {
+                        'course': course,
+                        'team': $scope.teamid,
+                        'login': userService.getUser(),
+                        'auth': userService.getAuth()
+                    }
+                }).then(function (response) {
+                    //console.log("Worked!");
+                    //console.log(response.data);
+                    if (response.data == false) {
+                        $location.path('/home');
+                    } else {
+                        getTaigaCourseWeightFreq();
+                        getCustomAttributeName();
+                    }
+                });
 
-        function getTaigaSprintNames() {
-            $http({
-                url: './taiga/sprints',
-                method: "GET",
-                headers: {'courseName': course, 'teamName': $scope.teamid}
-            }).then(function (response) {
-                $scope.sprints = response.data;
-                $scope.taigaCharts = ['Partial', 'Full', 'Business'];
-                $scope.selectedTaigaChart = $scope.taigaCharts[0];
-                $scope.selectedSprint = response.data[0];
-                getTaigaSprints();
-            }, function (response) {
-                //fail case
-                console.log("didn't work");
-            });
-        }
+                function getCustomAttributeName() {
+                    $http({
+                        url: './getTeam',
+                        method: "GET",
+                        headers: {'courseName': course, 'teamName': $scope.teamid}
+                    }).then(function (response) {
+                      $scope.customAttribute = response.data.taiga_custom_attribute;
+                      getTaigaSprintNames();
+                    }, function (response) {
+                        console.log("didn't work");
+                    });
+                }
 
-        function getTaigaSprints() {
-            if(!$scope.selectedSprint) {
-              $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
-              return;
-            }
+                function getTaigaSprintNames() {
+                    $http({
+                        url: './taiga/sprints',
+                        method: "GET",
+                        headers: {'courseName': course, 'teamName': $scope.teamid}
+                    }).then(function (response) {
+                        $scope.sprints = response.data;
+                        $scope.selectedTaigaChart = $scope.taigaCharts[0];
+                        $scope.selectedSprint = response.data[0];
+                        getTaigaSprints();
+                    }, function (response) {
+                        //fail case
+                        console.log("didn't work");
+                    });
+                }
 
-            $http({
-                url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
-                method: "GET",
-            }).then(function (response) {
-                $scope.sprintDays = response.data;
-                $scope.dataForTaigaBurndown = getTaigaDataByChartType();
-                let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
-                $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
-            }, function (response) {
-                console.log("didn't work");
-            });
-        }
+                function getTaigaSprints() {
+                    if(!$scope.selectedSprint) {
+                      $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
+                      return;
+                    }
+
+                    $http({
+                        url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
+                        method: "GET",
+                    }).then(function (response) {
+                        $scope.sprintDays = response.data;
+                        if($scope.selectedSprint.hasCustomAttributeValue && $scope.customAttribute) {
+                          $scope.taigaCharts = ['Partial', 'Full', $scope.customAttribute];
+                        } else {
+                          $scope.taigaCharts = ['Partial', 'Full'];
+                        }
+                        $scope.selectedTaigaChart = $scope.taigaCharts[0];
+                        $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+                        let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
+                        $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
+                    }, function (response) {
+                        console.log("didn't work");
+                    });
+                }
 
         $scope.optionsForTaigaBurndown = {
             chart: {
@@ -1995,10 +2015,14 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             },
         };
 
-        $scope.onTaigaChartChange = function(chart) {
-          $scope.selectedTaigaChart = chart;
-          $scope.dataForTaigaBurndown = getTaigaDataByChartType();
-        }
+       $scope.onTaigaChartChange = function(chart) {
+                 $scope.selectedTaigaChart = chart;
+                 $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+                 if(chart === $scope.customAttribute) {
+                   let customAttributePoints = $scope.sprintDays.map(item => item.customAttributePoints);
+                   $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, ...customAttributePoints)];
+                 }
+               }
 
         $scope.onSprintChange = function(sprint) {
           $scope.selectedSprint = sprint;
@@ -4808,6 +4832,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                                     $scope.team.taiga_project_slug = $scope.enteredTaigaSlug;
                                     $scope.team.github_owner = $scope.enteredGitHubOwner;
                                     $scope.team.github_token = $scope.enteredGitHubToken;
+                                    $scope.team.taiga_custom_attribute = $scope.enteredTaigaCustomAttribute;
                                     $scope.team.github_repo_id = $scope.enteredGitHubRepo;
                                     $scope.team.slack_team_id = $scope.enteredSlackTeam;
                                     var exists = false;
