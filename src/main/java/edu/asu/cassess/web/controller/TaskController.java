@@ -69,6 +69,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");
