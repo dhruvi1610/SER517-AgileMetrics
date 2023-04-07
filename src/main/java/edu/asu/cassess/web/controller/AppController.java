@@ -298,6 +298,11 @@ public class AppController {
         List<TaigaSprint> taigaSprints = taigaSprintService.getSprintNames(courseName, teamName);
         return new ResponseEntity<>(taigaSprints, HttpStatus.OK);
     }
+    @GetMapping(value = "/getTeam")
+    public ResponseEntity<Team> getTeam(@RequestHeader(name = "courseName", required = true) String courseName, @RequestHeader(name = "teamName", required = true) String teamName) {
+        Team team = (Team) teamService.read(teamName, courseName);
+        return new ResponseEntity<>(team, HttpStatus.OK);
+    }
 
     //Weekly Activity for a course
     @ResponseBody

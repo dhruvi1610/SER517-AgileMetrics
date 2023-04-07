@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface ProjectRepo extends JpaRepository<Project, String> {
 
-  @Query(value = "Select t.team_name, t.course as course_name, p.id as project_id, c.taiga_token \n"
+  @Query(value = "Select t.team_name, t.course as course_name, p.id as project_id, c.taiga_token, t.taiga_custom_attribute \n"
       + "from project p Join teams t on t.taiga_project_slug = p.slug Join courses c on t.course = c.course \n"
       + "where c.end_date >= curdate()", nativeQuery = true)
   List<Object[]> getProjectInfoOfActiveCourses();
 
-  @Query(value = "Select t.team_name, t.course as course_name, p.id as project_id, c.taiga_token \n"
+  @Query(value = "Select t.team_name, t.course as course_name, p.id as project_id, c.taiga_token, t.taiga_custom_attribute \n"
       + "from project p Join teams t on t.taiga_project_slug = p.slug Join courses c on t.course = c.course \n"
       + "where t.course = ?1", nativeQuery = true)
   List<Object[]> getProjectCourseInfoByCourse(String course);
