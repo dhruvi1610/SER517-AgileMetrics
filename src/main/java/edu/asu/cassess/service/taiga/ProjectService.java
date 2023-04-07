@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -95,7 +96,8 @@ public class ProjectService implements IProjectService {
     private List<ProjectCourseDto> convertObjectToDto(List<Object[]> projectCourseInfo) {
         List<ProjectCourseDto> res = new ArrayList<>();
         projectCourseInfo.forEach(item -> {
-            res.add(new ProjectCourseDto(item[0].toString(), item[1].toString(), new BigInteger(item[2].toString()).longValue(), item[3].toString()));
+            res.add(new ProjectCourseDto(item[0].toString(), item[1].toString(), new BigInteger(item[2].toString()).longValue(),
+                    item[3].toString(), Objects.nonNull(item[4]) ? item[4].toString() : null));
         });
         return res;
     }

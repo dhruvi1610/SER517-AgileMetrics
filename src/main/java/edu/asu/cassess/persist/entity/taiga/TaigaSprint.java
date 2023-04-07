@@ -56,4 +56,7 @@ public class TaigaSprint {
   @JsonDeserialize(using = LocalDateDeserializer.class)
   @JsonSerialize(using = LocalDateSerializer.class)
   private LocalDate estimatedFinish;
+
+  @Column(name = "has_custom_attribute_value")
+  private Boolean hasCustomAttributeValue;
 }
