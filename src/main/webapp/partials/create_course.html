@@ -123,8 +123,26 @@
                                 <input type="file" name="file" onchange="angular.element(this).scope().handleFiles(this.files)" accept=".csv, .json" style="display:none">
                             </label>
                         </div>
+                        <div>
+                            <button ng-click="open()" class="btn btn-primary">Import from canvas</button>
+                        </div>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="showModal" style="max-width:600px;margin:60px auto;">
+        <div class="modal-content" >
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+                <h4 class="modal-title">Enter canvas token</h4>
+            </div>
+            <div class="form-group label-floating">
+                <input type="text" class="form-control" ng-model="enteredCanvasToken" placeholder="canvas access Token" >
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancel()">cancel</button>
+                <button type="button" class="btn btn-primary" ng-click="ok()">apply</button>
             </div>
         </div>
     </div>

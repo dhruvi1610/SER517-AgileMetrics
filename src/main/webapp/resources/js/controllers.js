@@ -5445,6 +5445,19 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.$apply();
             };
 
+            $scope.open = function () {
+
+                document.getElementById("showModal").style.display = "block";
+            };
+
+            $scope.ok = function () {
+                document.getElementById("showModal").style.display = "";
+            };
+
+            $scope.cancel = function () {
+                document.getElementById("showModal").style.display = "";
+            };
+
             $scope.errorHandler = function(evt) {
                 if(evt.target.error.name == "NotReadableError") {
                     alert("Cannot read file !");
