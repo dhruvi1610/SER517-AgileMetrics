@@ -9,9 +9,14 @@ import edu.asu.cassess.persist.repo.rest.CourseRepo;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.ejb.EJB;
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.web.client.RestTemplate;
 
@@ -78,6 +83,33 @@ public class CourseService implements ICourseService {
         }
 
         return courseRepo.save(updatedCourses);
+    }
+
+    @Override
+    public List<Course> getCourseFromCanvas(String canvasToken){
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://canvas.asu.edu/api/v1/courses";
+        HttpHeaders headers = new HttpHeaders();
+        if(!canvasToken.equalsIgnoreCase("na")) {
+            headers.setBearerAuth(canvasToken);
+        }
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<Course[]> responseEntity = null;
+
+        try {
+            responseEntity = restTemplate.exchange(url, HttpMethod.GET, request, Course[].class);
+
+        } catch (Exception e) {
+            System.out.println("Canvas fetch stats failed. " + e.getMessage());
+        }
+
+        if(responseEntity != null && responseEntity.getBody() != null && !Arrays.toString(responseEntity.getBody()).startsWith("{}")) {
+            List<Course> courses = Arrays.asList(responseEntity.getBody());
+
+            return courses;
+        }
+        return null;
     }
 
     @Override

@@ -124,26 +124,29 @@
                             </label>
                         </div>
                         <div>
-                            <button ng-click="open()" class="btn btn-primary">Import from canvas</button>
+                            <button class="btn btn-primary" ng-click="openModal()">Open Modal</button>
                         </div>
                     </ul>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="modal" id="showModal" style="max-width:600px;margin:60px auto;">
-        <div class="modal-content" >
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
-                <h4 class="modal-title">Enter canvas token</h4>
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal()">&times;</span>
+                    <h2>Canvas Access Token</h2>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" ng-model="enteredCanvasToken" placeholder="Enter Slack token">
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "fetchCourseCanvas()" class="btn btn-primary">Submit</button>
+                </div>
             </div>
-            <div class="form-group label-floating">
-                <input type="text" class="form-control" ng-model="enteredCanvasToken" placeholder="canvas access Token" >
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancel()">cancel</button>
-                <button type="button" class="btn btn-primary" ng-click="ok()">apply</button>
-            </div>
+
         </div>
+
     </div>
 </div>

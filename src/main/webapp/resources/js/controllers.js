@@ -5489,6 +5489,29 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 }
             };
 
+           $scope.openModal = function(){
+                document.getElementById("myModal").style.display = "block";
+           }
+           $scope.closeModal = function(){
+                document.getElementById("myModal").style.display = "none";
+           }
+           window.onclick = function(event) {
+             if (event.target == document.getElementById("myModal")) {
+                $scope.closeModal();
+             }
+           }
+
+           $scope.fetchCourseCanvas = function(){
+                $http({
+                    url: './rest/canvasCourses',
+                    method: "GET",
+                    headers: {'token': $scope.enteredCanvasToken}
+                }).then(function (response) {
+                    console.log(response.data);
+                }, function (response) {
+                    console.log("didn't work");
+                });
+           }
             $scope.saveJSON = function () {
 
                 var data = $rootScope.coursePackage;
