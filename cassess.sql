@@ -68,6 +68,25 @@ INSERT INTO `authority` VALUES (1,'admin'),(2,'student'),(3,'super_user'),(4,'re
 UNLOCK TABLES;
 
 --
+-- Creating table for git blame
+--
+
+CREATE TABLE github_blame (
+  commit_id varchar(255) NOT NULL,
+  filename varchar(255) NOT NULL,
+  course varchar(255) DEFAULT NULL,
+  team varchar(255) DEFAULT NULL,
+  username varchar(255) DEFAULT NULL,
+  commit_date date DEFAULT NULL,
+  commit_status varchar(255) DEFAULT NULL,
+  commit_message varchar(255) DEFAULT NULL,
+  full_name varchar(255) DEFAULT NULL,
+  lines_of_code_added int DEFAULT NULL,
+  lines_of_code_deleted int DEFAULT NULL,
+  patch mediumtext,
+  PRIMARY KEY (commit_id,filename))
+
+--
 -- Table structure for table `channelobject_members`
 --
 
