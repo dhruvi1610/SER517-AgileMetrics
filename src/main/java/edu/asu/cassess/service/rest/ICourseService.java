@@ -23,6 +23,8 @@ public interface ICourseService {
 
     List<Course> refreshTaigaTokes();
 
+    List<Course> getCourseFromCanvas(String token);
+
     JSONObject listCreate(List<Course> courses);
 
     JSONObject listUpdate(List<Course> courses);

@@ -14,6 +14,13 @@ import java.util.List;
 public class Course {
 
     @Transient
+    public int id;
+
+    @Transient
+    public String name;
+
+
+    @Transient
     public static String COURSE_STRING;
     @Id
     @Column(name = "course")
@@ -43,6 +50,22 @@ public class Course {
     protected List<Admin> admins;
 
     public Course() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getCourse() {

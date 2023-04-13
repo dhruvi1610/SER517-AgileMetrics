@@ -135,6 +135,13 @@ public class restController {
         }
     }
 
+    @ResponseBody
+    @GetMapping(value = "/canvasCourses")
+    public List<Course> getAdminCourses(@RequestHeader(name = "token", required = true) String token,
+                                        HttpServletRequest request, HttpServletResponse response) {
+        return courseService.getCourseFromCanvas(token);
+    }
+
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/coursePackage", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public
