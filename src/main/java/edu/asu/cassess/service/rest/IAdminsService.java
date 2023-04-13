@@ -28,4 +28,5 @@ public interface IAdminsService {
     <T> Object deleteByCourse(Course course);
 
     List<CourseList> listGetCoursesForAdmin(String email);
+    List<Admin> getAdminFromCanvas(String token);
 }
