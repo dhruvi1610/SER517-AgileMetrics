@@ -124,7 +124,7 @@
                             </label>
                         </div>
                         <div>
-                            <button class="btn btn-primary" ng-click="openModal()">Open Modal</button>
+                            <button class="btn btn-primary" ng-click="openModal('myModal')">Open Modal</button>
                         </div>
                     </ul>
                 </div>
@@ -135,7 +135,7 @@
             <!-- Modal content -->
             <div class="modal-content">
                 <div class="modal-header">
-                    <span class="close" ng-click = "closeModal()">&times;</span>
+                    <span class="close" ng-click = "closeModal('myModal')">&times;</span>
                     <h2>Canvas Access Token</h2>
                 </div>
                 <div class="modal-body">
@@ -143,6 +143,25 @@
                 </div>
                 <div class="modal-footer">
                     <button ng-click = "fetchCourseCanvas()" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+
+        </div>
+        <div id="dropDownModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('dropDownModal')">&times;</span>
+                    <h2>Import from canvas</h2>
+                </div>
+                <div class="modal-body">
+                    <label style="color: black">Select Course: </label>
+                    <select class="select_style"  ng-model="SelectedCanvasCourse" ng-options="x.name for x in canvasCourses">
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "fillUpCourse()" class="btn btn-primary">Submit</button>
                 </div>
             </div>
 

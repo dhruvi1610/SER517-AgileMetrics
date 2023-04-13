@@ -5489,15 +5489,16 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 }
             };
 
-           $scope.openModal = function(){
-                document.getElementById("myModal").style.display = "block";
+           $scope.openModal = function(modalId){
+                document.getElementById(modalId).style.display = "block";
            }
-           $scope.closeModal = function(){
-                document.getElementById("myModal").style.display = "none";
+           $scope.closeModal = function(modalId){
+                document.getElementById(modalId).style.display = "none";
            }
            window.onclick = function(event) {
              if (event.target == document.getElementById("myModal")) {
-                $scope.closeModal();
+                $scope.enteredCanvasToken = '';
+                $scope.closeModal("myModal");
              }
            }
 
@@ -5507,10 +5508,23 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     method: "GET",
                     headers: {'token': $scope.enteredCanvasToken}
                 }).then(function (response) {
-                    console.log(response.data);
+                    console.log(response.data)
+                    $scope.enteredCanvasToken = '';
+                    $scope.closeModal("myModal");
+                    $scope.canvasCourses = response.data;;
+                    $scope.openModal("dropDownModal");
                 }, function (response) {
                     console.log("didn't work");
                 });
+           }
+
+           $scope.fillUpCourse = function(){
+                $scope.enteredCourseName = $scope.SelectedCanvasCourse.name;
+                if($scope.SelectedCanvasCourse.end_at)
+                    $scope.enteredEndDate = $scope.SelectedCanvasCourse.end_at;
+                console.log($scope.SelectedCanvasCourse);
+                    $scope.closeModal("dropDownModal");
+
            }
             $scope.saveJSON = function () {
 
