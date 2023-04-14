@@ -1,38 +1,37 @@
 package edu.asu.cassess.service.github;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.asu.cassess.dao.github.IGitHubCommitDataDao;
 import edu.asu.cassess.dao.github.IGitHubWeightQueryDao;
+import edu.asu.cassess.dto.github.external.BlameResponseDto;
+import edu.asu.cassess.dto.github.external.CommitDto;
+import edu.asu.cassess.dto.github.FileChangesDto;
 import edu.asu.cassess.model.github.GitHubAnalytics;
-import edu.asu.cassess.model.slack.MessageList;
 import edu.asu.cassess.persist.entity.github.CommitData;
 
 import edu.asu.cassess.persist.entity.github.GitHubPK;
 import edu.asu.cassess.persist.entity.github.GitHubWeight;
+import edu.asu.cassess.persist.entity.github.GithubBlame;
+import edu.asu.cassess.persist.entity.github.GithubBlameId;
 import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Student;
 import edu.asu.cassess.persist.repo.github.CommitDataRepo;
 import edu.asu.cassess.persist.repo.github.GitHubWeightRepo;
+import edu.asu.cassess.persist.repo.github.IGithubBlameRepository;
 import edu.asu.cassess.service.rest.CourseService;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IStudentsService;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.*;
 import java.text.ParseException;
@@ -42,6 +41,7 @@ import java.text.SimpleDateFormat;
 @Transactional
 public class GatherGitHubData implements IGatherGitHubData {
 
+    public static final String BASE_URL = "https://api.github.com/repos/";
     @Autowired
     private IGitHubCommitDataDao commitDao;
 
@@ -60,6 +60,9 @@ public class GatherGitHubData implements IGatherGitHubData {
     @Autowired
     private IGitHubWeightQueryDao ghWeightQuery;
 
+    @Autowired
+    private IGithubBlameRepository githubBlameRepository;
+
     private RestTemplate restTemplate;
     private String url;
     private String projectName;
@@ -67,6 +70,29 @@ public class GatherGitHubData implements IGatherGitHubData {
 
     public GatherGitHubData() {
         restTemplate = new RestTemplate();
+    }
+
+    @Override
+    public void fetchBlameData(String owner, String repoName, String course, String team,
+        String accessToken, List<Student> students, Set<String> commitIdSet) {
+        List<GithubBlame> result = new ArrayList<>();
+        String commitUrl = String.format("%s/%s/%s/commits", BASE_URL, owner, repoName);
+        Map<String, String> studentsMap = students.stream()
+            .collect(Collectors.toMap(Student::getGithub_username, Student::getFull_name));
+
+        List<String> commitIds = getNewCommitIdsOfStudents(commitUrl, studentsMap, commitIdSet);
+        for(String commitId : commitIds) {
+            try {
+                BlameResponseDto blameResponseDto = restTemplate.getForObject(commitUrl + "/" + commitId, BlameResponseDto.class);
+                if(blameResponseDto != null) {
+                    result.addAll(getFileChanges(blameResponseDto, course, team, studentsMap));
+                }
+            } catch (Exception e) {
+                System.out.println("Git blame fetch failed. " + e.getMessage());
+            }
+        }
+
+        githubBlameRepository.save(result);
     }
 
     /**
@@ -78,7 +104,7 @@ public class GatherGitHubData implements IGatherGitHubData {
      * @param projectName the project name of the repo
      */
     @Override
-    public void fetchData(String owner, String projectName, String course, String team, String accessToken) {
+    public void fetchContributorsStats(String owner, String projectName, String course, String team, String accessToken) {
         if (courseService == null) courseService = new CourseService();
         Course tempCourse = (Course) courseService.read(course);
         Date current = new Date();
@@ -92,11 +118,48 @@ public class GatherGitHubData implements IGatherGitHubData {
         if (current.before(tempCourse.getEnd_date())) {
             this.projectName = projectName;
             this.owner = owner;
-            url = "https://api.github.com/repos/" + owner + "/" + projectName;
+            url = BASE_URL + owner + "/" + projectName;
             getStats(course, team, accessToken, tempCourse);
         } else {
             ///System.out.println("*****************************************************Course Ended, no GH data Gathering");
         }
+    }
+
+    private List<String> getNewCommitIdsOfStudents(String commitUrl, Map<String, String> studentsMap, Set<String> commitIdSet) {
+        List<String> result = new ArrayList<>();
+        try {
+            CommitDto[] commits = restTemplate.getForObject(commitUrl, CommitDto[].class);
+            for (CommitDto commit : commits) {
+                String username = commit.getCommitInfo().getCommitter().getUsername();
+                if(studentsMap.containsKey(username) && !commitIdSet.contains(commit.getCommitId())) {
+                    result.add(commit.getCommitId());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            System.out.println("Git commit fetch failed. " + e.getMessage());
+            return result;
+        }
+    }
+
+    private List<GithubBlame> getFileChanges(BlameResponseDto blameResponseDto, String course, String team, Map<String, String> studentsMap) {
+        List<GithubBlame> result = new ArrayList<>();
+        String username = blameResponseDto.getCommitInfo().getCommitter().getUsername();
+        String fullName = studentsMap.get(username);
+        String commitMsg = blameResponseDto.getCommitInfo().getMessage();
+        LocalDate commitDate = getDateFromString(blameResponseDto.getCommitInfo().getCommitter().getDate());
+        for(FileChangesDto file : blameResponseDto.getFiles()) {
+            GithubBlameId githubBlameId = new GithubBlameId(blameResponseDto.getCommitId(), file.getFilename());
+            GithubBlame githubBlame = new GithubBlame(githubBlameId, course, team, username, commitDate, file.getStatus(), commitMsg, fullName,
+                file.getAdditions(), file.getDeletions(), file.getPatch());
+            result.add(githubBlame);
+        }
+        return result;
+    }
+
+    private LocalDate getDateFromString(String dateString) {
+        Instant instant = Instant.parse(dateString);
+        return LocalDate.ofInstant(Instant.parse(dateString), ZoneOffset.UTC);
     }
 
     private void getStats(String course, String team, String accessToken, Course tempCourse) {
