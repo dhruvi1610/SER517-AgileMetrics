@@ -751,7 +751,7 @@ public class AppController {
         List<Team> teams = teamService.listReadAll();
         for (Team team : teams) {
             Course course = (Course) courseService.read(team.getCourse());
-            gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+            gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
         }
     }
 
