@@ -87,8 +87,8 @@ public class TaskController {
         System.out.println("slack cron ran as scheduled");
     }
 
-    //@Scheduled(cron = "${taiga.sprints.cron.expression}")
-    @Scheduled(fixedRate = 100000)
+    @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 100000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");
