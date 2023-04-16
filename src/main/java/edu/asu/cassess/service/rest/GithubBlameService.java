@@ -18,6 +18,25 @@ public class GithubBlameService implements IGithubBlameService{
   IGithubBlameRepository githubBlameRepository;
 
   @Override
+  public List<FileChangesDto> findFileChangesOfCommit(String commitId) {
+    return githubBlameRepository.findByGithubBlameIdCommitId(commitId).stream()
+        .map(item -> new FileChangesDto(item.getGithubBlameId().getFilename(),
+            item.getCommitStatus(), item.getLinesOfCodeAdded(),
+            item.getLinesOfCodeDeleted(), item.getPatch()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<CommitDetailDto> findCommitsByUsername(String username) {
+    return convertObjectToCommitDto(githubBlameRepository.findDistinctCommitsByUsername(username));
+  }
+
+  @Override
+  public List<CommitDetailDto> findCommitsByFullName(String fullname) {
+    return convertObjectToCommitDto(githubBlameRepository.findDistinctCommitsByFullName(fullname));
+  }
+
+  @Override
   public Set<String> findDistictCommitIds() {
     return githubBlameRepository.findDistinctCommitIds();
   }
