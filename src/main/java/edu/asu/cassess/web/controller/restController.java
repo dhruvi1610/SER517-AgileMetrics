@@ -342,6 +342,12 @@ public class restController {
             return adminService.delete(admin);
         }
     }
+    @ResponseBody
+    @GetMapping(value = "/canvasAdmin")
+    public List<Admin> getAdminCanvas(@RequestHeader(name = "token", required = true) String canvasToken, @RequestHeader(name = "course_id", required = true) String course_id,
+                                        HttpServletRequest request, HttpServletResponse response) {
+        return adminService.getAdminFromCanvas(canvasToken, course_id);
+    }
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/admin", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

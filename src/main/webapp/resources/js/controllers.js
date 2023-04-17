@@ -4613,7 +4613,17 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     $scope.message = 'Please Enter Email prior to saving an Amdin';
                 }
             };
-
+            $scope.fetchAdminCanvas = function(){
+                             $http({
+                                 url: './rest/canvasAdmin',
+                                 method: "GET",
+                                 headers: {'canvasToken': $scope.enteredCanvasToken}, {'course_id': $scope.enteredCanvasToken}
+                             }).then(function (response) {
+                                 console.log(response.data);
+                             }, function (response) {
+                                 console.log("didn't work");
+                             });
+                        }
             $scope.saveAdminsJSON = function(adminsArray) {
                 if(adminsArray[0]) {
                     if (adminsArray[0].email) {

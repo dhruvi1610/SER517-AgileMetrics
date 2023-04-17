@@ -47,9 +47,9 @@ public class AdminsService implements IAdminsService {
         return adminsDao.listReadAll();
     }
     @Override
-    public List<Admin> getAdminFromCanvas(String canvasToken){
+    public List<Admin> getAdminFromCanvas(String canvasToken, String course_id){
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://canvas.asu.edu/api/v1/courses/146139/enrollments?type[]=TeacherEnrollment";
+        String url = "https://canvas.asu.edu/api/v1"+course_id+"/enrollments?type[]=TeacherEnrollment";
         HttpHeaders headers = new HttpHeaders();
         if(!canvasToken.equalsIgnoreCase("na")) {
             headers.setBearerAuth(canvasToken);
