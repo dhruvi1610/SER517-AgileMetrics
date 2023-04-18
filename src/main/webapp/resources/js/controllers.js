@@ -950,6 +950,11 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         //console.log("course: " + $scope.courseid);
 	
        $scope.commitMaxY = 0;
+       $scope.students;
+       $scope.commits;
+       $scope.files;
+       $scope.selectedStudent;
+       $scope.selectedCommit;
 
 		$http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8";
         $http({
@@ -963,8 +968,90 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $location.path('/home');
             } else {
                 getTaigaWeightFreq();
+                getCourseStudents();
             }
         });
+
+        function getCourseStudents() {
+            $http({
+                url: './course_students',
+                method: "GET",
+                headers: {'course': $scope.courseid}
+            }).then(function (response) {
+                $scope.students = response.data;
+                $scope.selectedStudent = $scope.students[0];
+                getCommitsOfStudent();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getCommitsOfStudent() {
+            $http({
+                url: './github/commits_username',
+                method: "GET",
+                headers: {'username': $scope.selectedStudent.github_username}
+            }).then(function (response) {
+                $scope.commits = response.data;
+                $scope.selectedCommit = $scope.commits[0];
+                getFileChangesOfCommit();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getFileChangesOfCommit() {
+            $http({
+                url: './github/commits/file_changes',
+                method: "GET",
+                headers: {'commitId': $scope.selectedCommit.commitId}
+            }).then(function (response) {
+                $scope.files = response.data.map(item => {
+                  item.lines = getFileLines(item.patch);
+                  return item;
+                });
+                console.log($scope.files);
+                $scope.selectedFile = $scope.files[0];
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        $scope.onStudentSelect = function(student) {
+          $scope.selectedStudent = student;
+          getCommitsOfStudent();
+        }
+
+        $scope.onCommitSelect = function(commit) {
+          $scope.selectedCommit = commit;
+          getFileChangesOfCommit();
+        }
+
+        $scope.getCommitOption = function({commitDate, commitMessage}) {
+          let date = `${commitDate[2]}/${commitDate[1]}/${commitDate[0]}`
+          let message = commitMessage.length > 50 ? commitMessage.substring(0, 50).concat('...') : commitMessage;
+          return `${message} - ${date}`
+        }
+
+        function getFileLines(patch) {
+           let res = [];
+           if(!patch) return res;
+           let items = patch.split("\n");
+           items.forEach(item => {
+              let style = {whiteSpace: 'pre-wrap'};
+              if(item.trim() === "") {
+                item = "NEW_LINE";
+              } else if(item.startsWith("@@")) {
+                style.color = "grey";
+              } else if(item.startsWith("+")) {
+                style.backgroundColor = "lightgreen";
+              } else if(item.startsWith("-")) {
+                style.backgroundColor = "lightcoral";
+              }
+              res.push({content: item, style: style})
+           });
+           return res;
+        }
 
         function getTaigaWeightFreq() {
             $http({
@@ -1901,11 +1988,16 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.teamid = "none";
         }
 
-        $scope.commitMaxY = 0;
-        $scope.selectedSprint;
+       $scope.commitMaxY = 0;
+       $scope.selectedSprint;
        $scope.taigaCharts = ['Partial', 'Full'];
-               $scope.selectedTaigaChart;
-               $scope.customAttribute;
+       $scope.selectedTaigaChart;
+       $scope.customAttribute;
+        $scope.students;
+        $scope.commits;
+        $scope.files;
+        $scope.selectedStudent;
+        $scope.selectedCommit;
 
 
         //console.log("team: " + $scope.teamid);
@@ -1913,78 +2005,158 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8";
 
         $http({
-                    url: './check_teamaccess',
-                    method: "GET",
-                    headers: {
-                        'course': course,
-                        'team': $scope.teamid,
-                        'login': userService.getUser(),
-                        'auth': userService.getAuth()
-                    }
-                }).then(function (response) {
-                    //console.log("Worked!");
-                    //console.log(response.data);
-                    if (response.data == false) {
-                        $location.path('/home');
-                    } else {
-                        getTaigaCourseWeightFreq();
-                        getCustomAttributeName();
-                    }
-                });
+            url: './check_teamaccess',
+            method: "GET",
+            headers: {
+                'course': course,
+                'team': $scope.teamid,
+                'login': userService.getUser(),
+                'auth': userService.getAuth()
+            }
+        }).then(function (response) {
+            //console.log("Worked!");
+            //console.log(response.data);
+            if (response.data == false) {
+                $location.path('/home');
+            } else {
+                getTeamStudents();
+                getTaigaCourseWeightFreq();
+                getCustomAttributeName();
+            }
+        });
 
-                function getCustomAttributeName() {
-                    $http({
-                        url: './getTeam',
-                        method: "GET",
-                        headers: {'courseName': course, 'teamName': $scope.teamid}
-                    }).then(function (response) {
-                      $scope.customAttribute = response.data.taiga_custom_attribute;
-                      getTaigaSprintNames();
-                    }, function (response) {
-                        console.log("didn't work");
-                    });
+        function getTeamStudents() {
+            $http({
+               url: './team_students',
+               method: "GET",
+               headers: {'course': course, 'team': $scope.teamid}
+            }).then(function (response) {
+                $scope.students = response.data;
+                $scope.selectedStudent = $scope.students[0];
+                getCommitsOfStudent();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getCommitsOfStudent() {
+            $http({
+                url: './github/commits_username',
+                method: "GET",
+                headers: {'username': $scope.selectedStudent.github_username}
+            }).then(function (response) {
+                $scope.commits = response.data;
+                $scope.selectedCommit = $scope.commits[0];
+                getFileChangesOfCommit();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getFileChangesOfCommit() {
+            $http({
+                url: './github/commits/file_changes',
+                method: "GET",
+                headers: {'commitId': $scope.selectedCommit?.commitId}
+            }).then(function (response) {
+              $scope.files = response.data.map(item => {
+                item.lines = getFileLines(item.patch);
+                return item;
+              });
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        $scope.onStudentSelect = function(student) {
+          $scope.selectedStudent = student;
+          getCommitsOfStudent();
+        }
+
+        $scope.onCommitSelect = function(commit) {
+          $scope.selectedCommit = commit;
+          getFileChangesOfCommit();
+        }
+
+        $scope.getCommitOption = function({commitDate, commitMessage}) {
+          let date = `${commitDate[2]}/${commitDate[1]}/${commitDate[0]}`
+          let message = commitMessage.length > 50 ? commitMessage.substring(0, 50).concat('...') : commitMessage;
+          return `${message} - ${date}`
+        }
+
+        function getFileLines(patch) {
+           let res = [];
+           if(!patch) return res;
+           let items = patch.split("\n");
+           items.forEach(item => {
+              let style = {whiteSpace: 'pre-wrap'};
+              if(item.trim() === "") {
+                item = "NEW_LINE";
+              } else if(item.startsWith("@@")) {
+                style.color = "grey";
+              } else if(item.startsWith("+")) {
+                style.backgroundColor = "lightgreen";
+              } else if(item.startsWith("-")) {
+                style.backgroundColor = "lightcoral";
+              }
+              res.push({content: item, style: style})
+           });
+           return res;
+        }
+
+        function getCustomAttributeName() {
+            $http({
+                url: './getTeam',
+                method: "GET",
+                headers: {'courseName': course, 'teamName': $scope.teamid}
+            }).then(function (response) {
+              $scope.customAttribute = response.data.taiga_custom_attribute;
+              getTaigaSprintNames();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getTaigaSprintNames() {
+            $http({
+                url: './taiga/sprints',
+                method: "GET",
+                headers: {'courseName': course, 'teamName': $scope.teamid}
+            }).then(function (response) {
+                $scope.sprints = response.data;
+                $scope.selectedTaigaChart = $scope.taigaCharts[0];
+                $scope.selectedSprint = response.data[0];
+                getTaigaSprints();
+            }, function (response) {
+                //fail case
+                console.log("didn't work");
+            });
+        }
+
+        function getTaigaSprints() {
+            if(!$scope.selectedSprint) {
+              $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
+              return;
+            }
+
+            $http({
+                url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
+                method: "GET",
+            }).then(function (response) {
+                $scope.sprintDays = response.data;
+                if($scope.selectedSprint.hasCustomAttributeValue && $scope.customAttribute) {
+                  $scope.taigaCharts = ['Partial', 'Full', $scope.customAttribute];
+                } else {
+                  $scope.taigaCharts = ['Partial', 'Full'];
                 }
-
-                function getTaigaSprintNames() {
-                    $http({
-                        url: './taiga/sprints',
-                        method: "GET",
-                        headers: {'courseName': course, 'teamName': $scope.teamid}
-                    }).then(function (response) {
-                        $scope.sprints = response.data;
-                        $scope.selectedTaigaChart = $scope.taigaCharts[0];
-                        $scope.selectedSprint = response.data[0];
-                        getTaigaSprints();
-                    }, function (response) {
-                        //fail case
-                        console.log("didn't work");
-                    });
-                }
-
-                function getTaigaSprints() {
-                    if(!$scope.selectedSprint) {
-                      $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
-                      return;
-                    }
-
-                    $http({
-                        url: './taiga/sprint-days/'+$scope.selectedSprint.sprintId,
-                        method: "GET",
-                    }).then(function (response) {
-                        $scope.sprintDays = response.data;
-                        if($scope.selectedSprint.hasCustomAttributeValue && $scope.customAttribute) {
-                          $scope.taigaCharts = ['Partial', 'Full', $scope.customAttribute];
-                        } else {
-                          $scope.taigaCharts = ['Partial', 'Full'];
-                        }
-                        $scope.selectedTaigaChart = $scope.taigaCharts[0];
-                        $scope.dataForTaigaBurndown = getTaigaDataByChartType();
-                        let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
-                        $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
-                    }, function (response) {
-                        console.log("didn't work");
-                    });
-                }
+                $scope.selectedTaigaChart = $scope.taigaCharts[0];
+                $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+                let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
+                $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
 
         $scope.optionsForTaigaBurndown = {
             chart: {
@@ -3088,7 +3260,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         $scope.studentid = $routeParams.student_id;
         $scope.courseid = courseService.getCourse();
         $scope.teamid = teamService.getTeam();
-		var course = courseService.getCourse();
+		    var course = courseService.getCourse();
         var team = teamService.getTeam();
         var studentemail = studentService.getStudentEmail();
 
@@ -3107,7 +3279,10 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             //console.log("studentemail: " + studentemail);
         }
 
-        $scope.commitMaxY = 0;
+         $scope.commitMaxY = 0;
+         $scope.commits;
+         $scope.files;
+         $scope.selectedCommit;
 
         $http.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8";
         $http({
@@ -3127,9 +3302,70 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             if (response.data == false) {
                 $location.path('/home');
             } else {
+                getCommitsOfStudent();
                 getTaigaCourseWeightFreq();
             }
         });
+
+        function getCommitsOfStudent() {
+            $http({
+                url: './github/commits_fullName',
+                method: "GET",
+                headers: {'fullName': $scope.studentid}
+            }).then(function (response) {
+                $scope.commits = response.data;
+                $scope.selectedCommit = $scope.commits[0];
+                getFileChangesOfCommit();
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        function getFileChangesOfCommit() {
+            $http({
+                url: './github/commits/file_changes',
+                method: "GET",
+                headers: {'commitId': $scope.selectedCommit.commitId}
+            }).then(function (response) {
+                $scope.files = response.data.map(item => {
+                  item.lines = getFileLines(item.patch);
+                  return item;
+                });
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        $scope.onCommitSelect = function(commit) {
+          $scope.selectedCommit = commit;
+          getFileChangesOfCommit();
+        }
+
+        $scope.getCommitOption = function({commitDate, commitMessage}) {
+          let date = `${commitDate[2]}/${commitDate[1]}/${commitDate[0]}`
+          let message = commitMessage.length > 50 ? commitMessage.substring(0, 50).concat('...') : commitMessage;
+          return `${message} - ${date}`
+        }
+
+        function getFileLines(patch) {
+           let res = [];
+           if(!patch) return res;
+           let items = patch.split("\n");
+           items.forEach(item => {
+              let style = {whiteSpace: 'pre-wrap'};
+              if(item.trim() === "") {
+                item = "NEW_LINE";
+              } else if(item.startsWith("@@")) {
+                style.color = "grey";
+              } else if(item.startsWith("+")) {
+                style.backgroundColor = "lightgreen";
+              } else if(item.startsWith("-")) {
+                style.backgroundColor = "lightcoral";
+              }
+              res.push({content: item, style: style})
+           });
+           return res;
+        }
 
         function getTaigaCourseWeightFreq() {
             $http({
@@ -4613,21 +4849,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     $scope.message = 'Please Enter Email prior to saving an Amdin';
                 }
             };
-            $scope.fetchAdminCanvas = function(){
-                 $http({
-                     url: './rest/canvasAdmin/'+$rootScope.selectedCanvasCourse.id,
-                     method: "GET",
-                     headers: {'token': $rootScope.enteredCanvasToken}
-                 }).then(function (response) {
-                    if(response.data[0]){
-                         $scope.enteredName = response.data[0].name;
-                         if(response.data[0].login_id)
-                             $scope.enteredEmail = response.data[0].login_id + "@asu.edu";
-                    }
-                 }, function (response) {
-                     console.log("didn't work");
-                 });
-            }
+
             $scope.saveAdminsJSON = function(adminsArray) {
                 if(adminsArray[0]) {
                     if (adminsArray[0].email) {
@@ -5521,7 +5743,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fetchCourseCanvas = function(){
-                $rootScope.enteredCanvasToken = $scope.enteredCanvasToken;
                 $http({
                     url: './rest/canvasCourses',
                     method: "GET",
@@ -5530,7 +5751,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     console.log(response.data)
                     $scope.enteredCanvasToken = '';
                     $scope.closeModal("myModal");
-                    $scope.canvasCourses = response.data;
+                    $scope.canvasCourses = response.data;;
                     $scope.openModal("dropDownModal");
                 }, function (response) {
                     console.log("didn't work");
@@ -5538,7 +5759,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fillUpCourse = function(){
-                $rootScope.selectedCanvasCourse = $scope.SelectedCanvasCourse;
                 $scope.enteredCourseName = $scope.SelectedCanvasCourse.name;
                 if($scope.SelectedCanvasCourse.end_at)
                     $scope.enteredEndDate = $scope.SelectedCanvasCourse.end_at;
