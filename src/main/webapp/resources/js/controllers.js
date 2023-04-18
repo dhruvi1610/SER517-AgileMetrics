@@ -4809,6 +4809,10 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 window.location.href = 'http://cassess.fulton.asu.edu/cassess/#/create_course';
             }
 
+            $scope.fetchTeamCanvas = function(){
+
+            }
+
             $scope.setClickedTeam = function(index){
                 $scope.selectedRow = index;
                 $scope.selectedTeam = $scope.teams[index];

@@ -6,10 +6,15 @@ import edu.asu.cassess.model.Taiga.TeamNames;
 import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Team;
 import org.json.JSONObject;
-import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.ejb.EJB;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -76,6 +81,31 @@ public class TeamsService implements ITeamsService {
     @Override
     public <T> Object deleteByCourse(Course course) {
         return teamsDao.deleteByCourse(course);
+    }
+
+    @Override
+    public List<Team> getTeamCanvas(Long courseId, String canvasToken) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://canvas.asu.edu/api/v1/courses/"+courseId+"/groups";
+        HttpHeaders headers = new HttpHeaders();
+        if(!canvasToken.equalsIgnoreCase("na")) {
+            headers.setBearerAuth(canvasToken);
+        }
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<Team[]> responseEntity = null;
+
+        try {
+            responseEntity = restTemplate.exchange(url, HttpMethod.GET, request, Team[].class);
+
+        } catch (Exception e) {
+            System.out.println("Canvas fetch stats failed. " + e.getMessage());
+        }
+
+        if(responseEntity != null && responseEntity.getBody() != null && !Arrays.toString(responseEntity.getBody()).startsWith("{}")) {
+            return Arrays.asList(responseEntity.getBody());
+        }
+        return null;
     }
 
 }
