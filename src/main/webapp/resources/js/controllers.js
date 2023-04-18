@@ -4614,16 +4614,20 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 }
             };
             $scope.fetchAdminCanvas = function(){
-                             $http({
-                                 url: './rest/canvasAdmin',
-                                 method: "GET",
-                                 headers: {'canvasToken': $scope.enteredCanvasToken}, {'course_id': $scope.enteredCanvasToken}
-                             }).then(function (response) {
-                                 console.log(response.data);
-                             }, function (response) {
-                                 console.log("didn't work");
-                             });
-                        }
+                 $http({
+                     url: './rest/canvasAdmin/'+$rootScope.selectedCanvasCourse.id,
+                     method: "GET",
+                     headers: {'token': $rootScope.enteredCanvasToken}
+                 }).then(function (response) {
+                    if(response.data[0]){
+                         $scope.enteredName = response.data[0].name;
+                         if(response.data[0].login_id)
+                             $scope.enteredEmail = response.data[0].login_id + "@asu.edu";
+                    }
+                 }, function (response) {
+                     console.log("didn't work");
+                 });
+            }
             $scope.saveAdminsJSON = function(adminsArray) {
                 if(adminsArray[0]) {
                     if (adminsArray[0].email) {
@@ -5513,6 +5517,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fetchCourseCanvas = function(){
+                $rootScope.enteredCanvasToken = $scope.enteredCanvasToken;
                 $http({
                     url: './rest/canvasCourses',
                     method: "GET",
@@ -5521,7 +5526,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     console.log(response.data)
                     $scope.enteredCanvasToken = '';
                     $scope.closeModal("myModal");
-                    $scope.canvasCourses = response.data;;
+                    $scope.canvasCourses = response.data;
                     $scope.openModal("dropDownModal");
                 }, function (response) {
                     console.log("didn't work");
@@ -5529,6 +5534,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fillUpCourse = function(){
+                $rootScope.selectedCanvasCourse = $scope.SelectedCanvasCourse;
                 $scope.enteredCourseName = $scope.SelectedCanvasCourse.name;
                 if($scope.SelectedCanvasCourse.end_at)
                     $scope.enteredEndDate = $scope.SelectedCanvasCourse.end_at;
