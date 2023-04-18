@@ -1,5 +1,6 @@
 package edu.asu.cassess.service.rest;
 
+import edu.asu.cassess.dto.rest.AdminDto;
 import edu.asu.cassess.model.rest.CourseList;
 import edu.asu.cassess.persist.entity.rest.Admin;
 import edu.asu.cassess.persist.entity.rest.Course;
@@ -28,4 +29,5 @@ public interface IAdminsService {
     <T> Object deleteByCourse(Course course);
 
     List<CourseList> listGetCoursesForAdmin(String email);
+    List<AdminDto> getAdminFromCanvas(String canvasToken, String course_id);
 }

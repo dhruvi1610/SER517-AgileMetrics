@@ -4,6 +4,7 @@ import edu.asu.cassess.dao.slack.IConsumeUsers;
 import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
 import edu.asu.cassess.dao.taiga.ITaskTotalsQueryDao;
+import edu.asu.cassess.dto.rest.AdminDto;
 import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.security.User;
 import edu.asu.cassess.persist.repo.UserRepo;
@@ -354,6 +355,12 @@ public class restController {
             }
             return adminService.delete(admin);
         }
+    }
+    @ResponseBody
+    @GetMapping(value = "/canvasAdmin/{courseId}")
+    public List<AdminDto> getAdminCanvas(@RequestHeader(name = "token", required = true) String canvasToken,
+                                         @PathVariable("courseId") String course_id) {
+        return adminService.getAdminFromCanvas(canvasToken, course_id);
     }
 
     @ResponseStatus(HttpStatus.OK)

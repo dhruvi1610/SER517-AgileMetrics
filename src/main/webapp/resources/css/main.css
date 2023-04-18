@@ -226,7 +226,7 @@
 
 .modal-header {
   padding: 2px 16px;
-  background-color: #5cb85c;
+  background-color: #009688;
   color: white;
 }
 
@@ -234,6 +234,6 @@
 
 .modal-footer {
   padding: 2px 16px;
-  background-color: #5cb85c;
+  background-color: #fefefe;
   color: white;
 }
