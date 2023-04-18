@@ -16,6 +16,11 @@ public class Team {
 
     @Transient
     public static String TEAM_STRING;
+    @Transient
+    public Long id;
+    @Transient
+    public String name;
+
     @Id
     @Column(name = "team_name")
     public String team_name;
@@ -43,6 +48,22 @@ public class Team {
 
     public Team() {
 
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getTeam_name() {

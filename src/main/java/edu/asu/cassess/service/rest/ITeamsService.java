@@ -35,4 +35,6 @@ public interface ITeamsService {
     List<TeamNames> listGetTeamNames(String course);
 
     <T> Object deleteByCourse(Course course);
+
+    List<Team> getTeamCanvas(Long courseId, String canvasToken);
 }
