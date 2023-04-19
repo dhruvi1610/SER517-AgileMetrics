@@ -4810,7 +4810,29 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             }
 
             $scope.fetchTeamCanvas = function(){
+                $http({
+                     url: './rest/canvasTeam/'+$rootScope.selectedCanvasCourse.id,
+                     method: "GET",
+                     headers: {'token': $rootScope.enteredCanvasToken}
+                 }).then(function (response) {
+                    console.log(response.data);
+                    $scope.canvasTeams = response.data;
+                    document.getElementById('teamsDropDownModal').style.display = 'block';
+                    // open modal to show dropdown for all the teams and select multiple teams to add them.
+                 }, function (response) {
+                     console.log("didn't work");
+                 });
+            }
+            $scope.fillUpTeams = function(){
+                $scope.enteredTeamName = $scope.selectedCanvasTeams.name;
+                $scope.enteredTaigaSlug = $scope.selectedCanvasTeams.name;
+                $scope.enteredGitHubRepo = $scope.selectedCanvasTeams.name;
+                $scope.enteredSlackTeam = $scope.selectedCanvasTeams.name;
+                $scope.closeModal('teamsDropDownModal');
+            }
 
+            $scope.closeModal = function(id){
+                document.getElementById(id).style.display = '';
             }
 
             $scope.setClickedTeam = function(index){

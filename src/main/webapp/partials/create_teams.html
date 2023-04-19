@@ -139,10 +139,29 @@
                         </label>
                     </div>
                     <div>
-                        <button ng-click="fetchTeamCanvas()" class="btn btn-primary">Import from canvas</button>
+                        <button ng-click="fetchTeamCanvas()" class="btn btn-primary">Import team from canvas</button>
                     </div>
                 </ul>
             </div>
+        </div>
+        <div id="teamsDropDownModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('teamsDropDownModal')">&times;</span>
+                    <h2>Import from canvas</h2>
+                </div>
+                <div class="modal-body">
+                    <label style="color: black">Select Team: </label>
+                    <select class="select_style"  ng-model="selectedCanvasTeams" ng-options="x.name for x in canvasTeams">
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "fillUpTeams()" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
