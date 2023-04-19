@@ -114,6 +114,10 @@
                                 <input type="file" name="file" onchange="angular.element(this).scope().handleFiles(this.files)" accept=".csv" style="display:none">
                             </label>
                         </div>
+
+                        <div>
+                            <button ng-click="fetchStudentsCanvas()" class="btn btn-primary" id="studentCanvasBtn">Import from canvas</button>
+                        </div>
                     </ul>
                 </div>
             </div>
