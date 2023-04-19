@@ -29,4 +29,13 @@ public class TaigaSprintDays {
 
   @Column(name = "custom_attribute_points")
   private Double customAttributePoints;
+
+  @Column(name = "new_tasks")
+  private Integer newTasks;
+
+  @Column(name = "in_progress_tasks")
+  private Integer inProgressTasks;
+
+  @Column(name = "closed_tasks")
+  private Integer closedTasks;
 }

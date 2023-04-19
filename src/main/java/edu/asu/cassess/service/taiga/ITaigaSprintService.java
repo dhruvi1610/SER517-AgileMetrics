@@ -6,11 +6,13 @@ import java.util.List;
 
 public interface ITaigaSprintService {
 
-  List<TaigaSprint> getSprintNames(String courseName, String teamName);
+  List<TaigaSprint> getSprints(String courseName, String teamName);
 
-  List<TaigaSprintDays> getBurndownDataBySprintId(Long sprintId);
+  List<TaigaSprintDays> getSprintDaysBySprintId(Long sprintId);
 
   void saveSprintsOfCourse(String courseName);
 
   void updateActiveSprints();
+  void saveTaskHistoryOfCourse(String courseName);
+  void updateTaskHistoryofActiveSprints();
 }
