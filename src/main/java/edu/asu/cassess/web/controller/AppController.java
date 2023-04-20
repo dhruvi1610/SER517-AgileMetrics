@@ -9,6 +9,8 @@ import edu.asu.cassess.dao.slack.ISlackMessageTotalsQueryDao;
 import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
 import edu.asu.cassess.dao.taiga.ITaskTotalsQueryDao;
+import edu.asu.cassess.dto.github.FileChangesDto;
+import edu.asu.cassess.dto.github.internal.CommitDetailDto;
 import edu.asu.cassess.model.Taiga.*;
 import edu.asu.cassess.model.rest.CourseList;
 import edu.asu.cassess.model.slack.DailyMessageTotals;
@@ -125,6 +127,9 @@ public class AppController {
 
     @Autowired
     private ITaigaSprintService taigaSprintService;
+
+    @Autowired
+    private IGithubBlameService githubBlameService;
 
     //New Query Based method to retrieve the current User object, associated with the current login
     @ResponseBody
@@ -401,6 +406,24 @@ public class AppController {
         String weekEnding, HttpServletRequest request, HttpServletResponse response) {
         List<WeeklyFreqWeight> weightFreqList = (List<WeeklyFreqWeight>) taskTotalService.twoWeekWeightFreqByCourse(course);
         return new ResponseEntity<List<WeeklyFreqWeight>>(weightFreqList, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/github/commits_username")
+    public ResponseEntity<List<CommitDetailDto>> getCommitsByUsername(@RequestHeader(name = "username", required = true) String username) {
+        List<CommitDetailDto> commits = githubBlameService.findCommitsByUsername(username);
+        return new ResponseEntity<>(commits, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/github/commits_fullName")
+    public ResponseEntity<List<CommitDetailDto>> getCommitsByfullName(@RequestHeader(name = "fullName", required = true) String fullName) {
+        List<CommitDetailDto> commits = githubBlameService.findCommitsByFullName(fullName);
+        return new ResponseEntity<>(commits, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/github/commits/file_changes")
+    public ResponseEntity<List<FileChangesDto>> getFileChangesOfCommit(@RequestHeader(name = "commitId", required = true) String commitId) {
+        List<FileChangesDto> fileChanges = githubBlameService.findFileChangesOfCommit(commitId);
+        return new ResponseEntity<>(fileChanges, HttpStatus.OK);
     }
 
     //Current and last week GH weight for a student
@@ -751,7 +774,7 @@ public class AppController {
         List<Team> teams = teamService.listReadAll();
         for (Team team : teams) {
             Course course = (Course) courseService.read(team.getCourse());
-            gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+            gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
         }
     }
 

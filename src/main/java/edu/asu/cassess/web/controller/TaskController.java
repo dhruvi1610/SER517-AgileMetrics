@@ -5,9 +5,12 @@ import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Team;
 import edu.asu.cassess.service.github.IGatherGitHubData;
 import edu.asu.cassess.service.rest.ICourseService;
+import edu.asu.cassess.service.rest.IGithubBlameService;
 import edu.asu.cassess.service.rest.ITeamsService;
 import edu.asu.cassess.service.slack.IChannelHistoryService;
 import edu.asu.cassess.service.taiga.ITaigaSprintService;
+import java.util.Collections;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -38,6 +41,9 @@ public class TaskController {
     private IGatherGitHubData gatherData;
 
     @Autowired
+    private IGithubBlameService githubBlameService;
+
+    @Autowired
     private ITaigaSprintService taigaSprintService;
 	
 	@Scheduled(cron = "${taiga.cron.expression}")
@@ -49,14 +55,27 @@ public class TaskController {
 		System.out.println("taiga cron ran as scheduled");
 	}
 
-    @Scheduled(cron = "${github.cron.expression}")
-    public void GitHubCommits() {
+    @Scheduled(cron = "${github.stats.cron.expression}")
+    public void GitHubStats() {
         List<Team> teams = teamsService.listReadAll();
+        Collections.reverse(teams);
         for(Team team: teams){
             Course course = (Course) coursesService.read(team.getCourse());
-            gatherData.fetchData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+            gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
         }
-        System.out.println("github cron ran as scheduled");
+        System.out.println("github stats cron for stats ran as scheduled");
+    }
+
+    @Scheduled(cron = "${github.blame.cron.expression}")
+    public void GitHubBlame() {
+        Set<String> commitIdSet = githubBlameService.findDistictCommitIds();
+        List<Team> teams = teamsService.listReadAll();
+        Collections.reverse(teams);
+        for(Team team: teams){
+            Course course = (Course) coursesService.read(team.getCourse());
+            gatherData.fetchBlameData(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token(), team.getStudents(), commitIdSet);
+        }
+        System.out.println("github blame cron for stats ran as scheduled");
     }
 
     @Scheduled(cron = "${slack.cron.expression}")
@@ -69,6 +88,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 100000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");
