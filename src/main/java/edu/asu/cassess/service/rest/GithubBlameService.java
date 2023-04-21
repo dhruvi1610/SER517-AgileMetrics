@@ -2,6 +2,7 @@ package edu.asu.cassess.service.rest;
 
 import edu.asu.cassess.dto.github.FileChangesDto;
 import edu.asu.cassess.dto.github.internal.CommitDetailDto;
+import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.repo.github.IGithubBlameRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,6 +17,11 @@ public class GithubBlameService implements IGithubBlameService{
 
   @Autowired
   IGithubBlameRepository githubBlameRepository;
+
+  @Override
+  public void saveMany(List<GithubBlame> values) {
+    githubBlameRepository.save(values);
+  }
 
   @Override
   public List<FileChangesDto> findFileChangesOfCommit(String commitId) {

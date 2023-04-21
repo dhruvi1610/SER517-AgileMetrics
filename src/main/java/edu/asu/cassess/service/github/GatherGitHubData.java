@@ -20,6 +20,7 @@ import edu.asu.cassess.persist.repo.github.IGithubBlameRepository;
 import edu.asu.cassess.service.rest.CourseService;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IStudentsService;
+import edu.asu.cassess.utils.DateUtil;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -72,29 +73,6 @@ public class GatherGitHubData implements IGatherGitHubData {
         restTemplate = new RestTemplate();
     }
 
-    @Override
-    public void fetchBlameData(String owner, String repoName, String course, String team,
-        String accessToken, List<Student> students, Set<String> commitIdSet) {
-        List<GithubBlame> result = new ArrayList<>();
-        String commitUrl = String.format("%s/%s/%s/commits", BASE_URL, owner, repoName);
-        Map<String, String> studentsMap = students.stream()
-            .collect(Collectors.toMap(Student::getGithub_username, Student::getFull_name));
-
-        List<String> commitIds = getNewCommitIdsOfStudents(commitUrl, studentsMap, commitIdSet);
-        for(String commitId : commitIds) {
-            try {
-                BlameResponseDto blameResponseDto = restTemplate.getForObject(commitUrl + "/" + commitId, BlameResponseDto.class);
-                if(blameResponseDto != null) {
-                    result.addAll(getFileChanges(blameResponseDto, course, team, studentsMap));
-                }
-            } catch (Exception e) {
-                System.out.println("Git blame fetch failed. " + e.getMessage());
-            }
-        }
-
-        githubBlameRepository.save(result);
-    }
-
     /**
      * Gathers the GitHub commit data from the GitHub Repo Stats
      * The github owner and project name can be found in the repo url as follows
@@ -123,43 +101,6 @@ public class GatherGitHubData implements IGatherGitHubData {
         } else {
             ///System.out.println("*****************************************************Course Ended, no GH data Gathering");
         }
-    }
-
-    private List<String> getNewCommitIdsOfStudents(String commitUrl, Map<String, String> studentsMap, Set<String> commitIdSet) {
-        List<String> result = new ArrayList<>();
-        try {
-            CommitDto[] commits = restTemplate.getForObject(commitUrl, CommitDto[].class);
-            for (CommitDto commit : commits) {
-                String username = commit.getCommitInfo().getCommitter().getUsername();
-                if(studentsMap.containsKey(username) && !commitIdSet.contains(commit.getCommitId())) {
-                    result.add(commit.getCommitId());
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            System.out.println("Git commit fetch failed. " + e.getMessage());
-            return result;
-        }
-    }
-
-    private List<GithubBlame> getFileChanges(BlameResponseDto blameResponseDto, String course, String team, Map<String, String> studentsMap) {
-        List<GithubBlame> result = new ArrayList<>();
-        String username = blameResponseDto.getCommitInfo().getCommitter().getUsername();
-        String fullName = studentsMap.get(username);
-        String commitMsg = blameResponseDto.getCommitInfo().getMessage();
-        LocalDate commitDate = getDateFromString(blameResponseDto.getCommitInfo().getCommitter().getDate());
-        for(FileChangesDto file : blameResponseDto.getFiles()) {
-            GithubBlameId githubBlameId = new GithubBlameId(blameResponseDto.getCommitId(), file.getFilename());
-            GithubBlame githubBlame = new GithubBlame(githubBlameId, course, team, username, commitDate, file.getStatus(), commitMsg, fullName,
-                file.getAdditions(), file.getDeletions(), file.getPatch());
-            result.add(githubBlame);
-        }
-        return result;
-    }
-
-    private LocalDate getDateFromString(String dateString) {
-        Instant instant = Instant.parse(dateString);
-        return LocalDate.ofInstant(Instant.parse(dateString), ZoneOffset.UTC);
     }
 
     private void getStats(String course, String team, String accessToken, Course tempCourse) {

@@ -19,6 +19,9 @@ public class BlameResponseDto {
   @JsonProperty("commit")
   private CommitInfoDto commitInfo;
 
+  @JsonProperty("committer")
+  private CommitterDto committer;
+
   @JsonProperty("files")
   private FileChangesDto[] files;
 }
