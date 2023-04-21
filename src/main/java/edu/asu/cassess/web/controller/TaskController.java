@@ -99,4 +99,11 @@ public class TaskController {
         coursesService.refreshTaigaTokes();
         System.out.println("refresh taiga tokens cron ran as scheduled");
     }
+
+    @Scheduled(cron = "${taiga.tasks.history.cron.expression}")
+//    @Scheduled(fixedRate = 100000000)
+    public void UpdateTaskHistory() {
+        taigaSprintService.updateTaskHistoryofActiveSprints();
+        System.out.println("Task History cron ran as scheduled");
+    }
 }
