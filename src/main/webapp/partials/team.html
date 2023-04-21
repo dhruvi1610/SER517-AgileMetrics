@@ -79,6 +79,9 @@
                                     ng-change="onSprintChange(selectedSprint)">
                             </select>
                             <nvd3 options='optionsForTaigaBurndown' data='dataForTaigaBurndown'></nvd3>
+
+                            <h3>Cumulative Flow Diagram</h3><br>
+                            <nvd3 options='optionsForCummulativeFlowChart' data='dataForCummulativeFlowChart'></nvd3>
                         <div afterRender='fireRefreshEventOnWindow()' ng-controller='TeamController'>
                             <h3>Task Status Update Activity</h3><br>
                             <nvd3 options='optionsForTaigaTeamActivity' data='dataForTaigaTeamActivity'></nvd3>
@@ -168,5 +171,6 @@
                     </div>
             </div>
         </div>
+    </div>
     </div>
 </div>

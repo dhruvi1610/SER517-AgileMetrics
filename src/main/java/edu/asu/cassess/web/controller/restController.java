@@ -131,6 +131,7 @@ public class restController {
             members.updateMembership(coursePackage.getCourse());
             consumeUsers.updateSlackUsers(coursePackage.getCourse());
             taigaSprintService.saveSprintsOfCourse(coursePackage.getCourse());
+            taigaSprintService.saveTaskHistoryOfCourse(coursePackage.getCourse());
             new Thread(() -> {
                 taskController.SlackMessages();
             }).start();
