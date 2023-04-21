@@ -5,11 +5,13 @@ import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
 import edu.asu.cassess.dao.taiga.ITaskTotalsQueryDao;
 import edu.asu.cassess.dto.rest.AdminDto;
-import edu.asu.cassess.dto.rest.StudentDTO;
+import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.security.User;
 import edu.asu.cassess.persist.repo.UserRepo;
 import edu.asu.cassess.service.github.IGatherGitHubData;
+import edu.asu.cassess.service.github.strategies.GithubBlameStrategy;
+import edu.asu.cassess.service.github.strategies.GithubContext;
 import edu.asu.cassess.service.rest.*;
 import edu.asu.cassess.service.security.IUserService;
 import edu.asu.cassess.service.taiga.IMembersService;
@@ -141,9 +143,11 @@ public class restController {
             new Thread(() -> {
 //                taskController.GitHubStats();
 //                taskController.GitHubBlame();
+                GithubContext githubContext = new GithubContext(new GithubBlameStrategy());
                 Set<String> commitIdSet = githubBlameService.findDistictCommitIdsOfCourse(coursePackage.getCourse());
+                List<GithubBlame> result = githubContext.executeStrategy(coursePackage.getTeams(), commitIdSet);
+                githubBlameService.saveMany(result);
                 for(Team team : coursePackage.getTeams()) {
-                    gatherData.fetchBlameData(team.getGithub_owner(), team.getGithub_repo_id(), coursePackage.getCourse(), team.getTeam_name(), team.getGithub_token(), team.getStudents(), commitIdSet);
                     gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), coursePackage.getCourse(), team.getTeam_name(), team.getGithub_token());
                 }
             }).start();
@@ -368,7 +372,7 @@ public class restController {
     @ResponseBody
     @GetMapping(value = "/canvasTeam/{courseId}")
     public List<Team> getTeamsCanvas(@RequestHeader(name = "token", required = true) String canvasToken,
-                                         @PathVariable("courseId") Long course_id) {
+                                     @PathVariable("courseId") Long course_id) {
         return teamService.getTeamCanvas(course_id, canvasToken);
     }
 
@@ -378,6 +382,8 @@ public class restController {
                                               @PathVariable("teamId") Long team_id) {
         return studentService.getStudentsCanvas(canvasToken, team_id);
     }
+    
+    
 
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/admin", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
