@@ -36,7 +36,6 @@ import edu.asu.cassess.service.taiga.IProjectService;
 import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import edu.asu.cassess.service.taiga.ITaskDataService;
 import io.swagger.annotations.Api;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -294,13 +293,13 @@ public class AppController {
 
     @GetMapping(value = "/taiga/sprint-days/{sprintId}")
     public ResponseEntity<List<TaigaSprintDays>> getTaigaSprints(@PathVariable("sprintId") Long sprintId) {
-        List<TaigaSprintDays> taigaSprints = taigaSprintService.getBurndownDataBySprintId(sprintId);
+        List<TaigaSprintDays> taigaSprints = taigaSprintService.getSprintDaysBySprintId(sprintId);
         return new ResponseEntity<>(taigaSprints, HttpStatus.OK);
     }
 
     @GetMapping(value = "/taiga/sprints")
     public ResponseEntity<List<TaigaSprint>> getTaigaSprintNames(@RequestHeader(name = "courseName", required = true) String courseName, @RequestHeader(name = "teamName", required = true) String teamName) {
-        List<TaigaSprint> taigaSprints = taigaSprintService.getSprintNames(courseName, teamName);
+        List<TaigaSprint> taigaSprints = taigaSprintService.getSprints(courseName, teamName);
         return new ResponseEntity<>(taigaSprints, HttpStatus.OK);
     }
     @GetMapping(value = "/getTeam")
