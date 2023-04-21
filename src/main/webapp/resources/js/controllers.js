@@ -2136,6 +2136,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
         function getTaigaSprints() {
             if(!$scope.selectedSprint) {
               $scope.dataForTaigaBurndown = getdataForTaigaPartialBurndown([]);
+              $scope.dataForCummulativeFlowChart = getDataForCummulativeFlowChart([]);
               return;
             }
 
@@ -2151,6 +2152,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 }
                 $scope.selectedTaigaChart = $scope.taigaCharts[0];
                 $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+                $scope.dataForCummulativeFlowChart = getDataForCummulativeFlowChart($scope.sprintDays);
                 let taigaSprintMaxY = response.data[0] ? response.data[0].estimatedPoints : 0;
                 $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, taigaSprintMaxY)];
             }, function (response) {
@@ -2187,14 +2189,43 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             },
         };
 
+        $scope.optionsForCummulativeFlowChart = {
+            chart: {
+                type: 'lineChart',
+                height: 450,
+                margin : {
+                    top: 50,
+                    right: 150,
+                    bottom: 100,
+                    left: 100
+                },
+                x: function(d){ return d[0]; },
+                y: function(d){ return d[1]; },
+                useInteractiveGuideline: true,
+                xAxis: {
+                    axisLabel: 'Date',
+                    tickFormat: function(d) {
+                        return d3.time.format('%b %d')(new Date(d))
+                    },
+
+                    showMaxMin: false,
+                    staggerLabels: false
+                },
+                yAxis: {
+                    axisLabel: 'Number of Tasks',
+                    axisLabelDistance: 0
+                },
+            },
+        };
+
        $scope.onTaigaChartChange = function(chart) {
-                 $scope.selectedTaigaChart = chart;
-                 $scope.dataForTaigaBurndown = getTaigaDataByChartType();
-                 if(chart === $scope.customAttribute) {
-                   let customAttributePoints = $scope.sprintDays.map(item => item.customAttributePoints);
-                   $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, ...customAttributePoints)];
-                 }
-               }
+         $scope.selectedTaigaChart = chart;
+         $scope.dataForTaigaBurndown = getTaigaDataByChartType();
+         if(chart === $scope.customAttribute) {
+           let customAttributePoints = $scope.sprintDays.map(item => item.customAttributePoints);
+           $scope.optionsForTaigaBurndown.chart.yDomain = [0, Math.max(1, ...customAttributePoints)];
+         }
+       }
 
         $scope.onSprintChange = function(sprint) {
           $scope.selectedSprint = sprint;
@@ -2244,6 +2275,24 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             data.push({color: "#a8e440", key: "BUSINESS VALUE", values: businessValue, strokeWidth: 2, area: true});
             return data;
         }
+
+        function getDataForCummulativeFlowChart(array) {
+            var data = []; var newTasks = []; var inProgressTasks = []; var readyToTestTasks = []; var closedTasks = [];
+
+            for (let item of array){
+              let dateArray = item.taigaSprintDaysId.date;
+              let date = new Date(dateArray[0], dateArray[1] - 1, dateArray[2]).getTime();
+
+              newTasks.push([date, item.newTasks]);
+              inProgressTasks.push([date, item.inProgressTasks]);
+              closedTasks.push([date, item.closedTasks]);
+            }
+
+            data.push({color: "#70728f", key: "NEW", values: newTasks, strokeWidth: 1, area: true});
+            data.push({color: "#e47c40", key: "IN PROGRESS", values: inProgressTasks, strokeWidth: 1, area: true});
+            data.push({color: "#a8e440", key: "CLOSED", values: closedTasks, strokeWidth: 1, area: true});
+            return data;
+          }
 
         function getTaigaDataByChartType() {
             if($scope.selectedTaigaChart === 'Partial')
