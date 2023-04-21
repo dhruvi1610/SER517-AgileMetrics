@@ -376,6 +376,15 @@ public class restController {
         return teamService.getTeamCanvas(course_id, canvasToken);
     }
 
+        @ResponseBody
+    @GetMapping(value = "/canvasStudent/{teamId}")
+    public List<StudentDTO> getStudentsCanvas(@RequestHeader(name = "token", required = true) String canvasToken,
+                                              @PathVariable("teamId") Long team_id) {
+        return studentService.getStudentsCanvas(canvasToken, team_id);
+    }
+    
+    
+
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/admin", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public
