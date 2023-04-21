@@ -12,12 +12,6 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitterDto {
 
-  @JsonProperty("name")
+  @JsonProperty("login")
   private String username;
-
-  @JsonProperty("email")
-  private String email;
-
-  @JsonProperty("date")
-  private String date;
 }

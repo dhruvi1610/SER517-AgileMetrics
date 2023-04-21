@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CommitInfoDto {
 
-  @JsonProperty("committer")
-  private CommitterDto committer;
+  @JsonProperty("author")
+  private AuthorDto author;
 
   @JsonProperty("message")
   private String message;

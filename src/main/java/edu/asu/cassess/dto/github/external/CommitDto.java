@@ -17,4 +17,7 @@ public class CommitDto {
 
   @JsonProperty("commit")
   private CommitInfoDto commitInfo;
+
+  @JsonProperty("committer")
+  private CommitterDto committer;
 }
