@@ -1,15 +1,22 @@
 package edu.asu.cassess.service.rest;
 
 import edu.asu.cassess.dao.rest.StudentsServiceDao;
+import edu.asu.cassess.dto.rest.StudentDTO;
 import edu.asu.cassess.model.rest.CourseList;
 import edu.asu.cassess.model.Taiga.TeamNames;
 import edu.asu.cassess.persist.entity.rest.Student;
 import edu.asu.cassess.persist.entity.rest.Team;
 import org.json.JSONObject;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.ejb.EJB;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -125,6 +132,31 @@ public class StudentsService implements IStudentsService {
     @Override
     public List<TeamNames> listGetAssignedTeams(String email, String course) {
         return studentsDao.listGetAssignedTeams(email, course);
+    }
+
+    @Override
+    public List<StudentDTO> getStudentsCanvas(String canvasToken, long teamId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://canvas.asu.edu/api/v1/groups/"+teamId+"/users";
+        HttpHeaders headers = new HttpHeaders();
+        if(!canvasToken.equalsIgnoreCase("na")) {
+            headers.setBearerAuth(canvasToken);
+        }
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<StudentDTO[]> responseEntity = null;
+
+        try {
+            responseEntity = restTemplate.exchange(url, HttpMethod.GET, request, StudentDTO[].class);
+
+        } catch (Exception e) {
+            System.out.println("Canvas fetch stats failed. " + e.getMessage());
+        }
+
+        if(responseEntity != null && responseEntity.getBody() != null && !Arrays.toString(responseEntity.getBody()).startsWith("{}")) {
+            return Arrays.asList(responseEntity.getBody());
+        }
+        return null;
     }
 
 }

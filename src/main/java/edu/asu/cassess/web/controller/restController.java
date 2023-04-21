@@ -5,6 +5,7 @@ import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
 import edu.asu.cassess.dao.taiga.ITaskTotalsQueryDao;
 import edu.asu.cassess.dto.rest.AdminDto;
+import edu.asu.cassess.dto.rest.StudentDTO;
 import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.security.User;
 import edu.asu.cassess.persist.repo.UserRepo;
@@ -368,6 +369,13 @@ public class restController {
     public List<Team> getTeamsCanvas(@RequestHeader(name = "token", required = true) String canvasToken,
                                          @PathVariable("courseId") Long course_id) {
         return teamService.getTeamCanvas(course_id, canvasToken);
+    }
+
+    @ResponseBody
+    @GetMapping(value = "/canvasStudent/{teamId}")
+    public List<StudentDTO> getStudentsCanvas(@RequestHeader(name = "token", required = true) String canvasToken,
+                                              @PathVariable("teamId") Long team_id) {
+        return studentService.getStudentsCanvas(canvasToken, team_id);
     }
 
     @ResponseStatus(HttpStatus.OK)

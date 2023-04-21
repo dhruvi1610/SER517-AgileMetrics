@@ -1,5 +1,6 @@
 package edu.asu.cassess.service.rest;
 
+import edu.asu.cassess.dto.rest.StudentDTO;
 import edu.asu.cassess.model.rest.CourseList;
 import edu.asu.cassess.model.Taiga.TeamNames;
 import edu.asu.cassess.persist.entity.rest.Student;
@@ -46,5 +47,7 @@ public interface IStudentsService {
     List<CourseList> listGetCoursesForStudent(String email);
 
     List<TeamNames> listGetAssignedTeams(String email, String course);
+
+    List<StudentDTO> getStudentsCanvas(String canvasToken, long teamId);
 
 	}

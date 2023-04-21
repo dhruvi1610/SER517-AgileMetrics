@@ -4460,6 +4460,10 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             $rootScope.provisionMode = true;
 
+            if($rootScope.enteredCanvasToken){
+                document.getElementById("studentCanvasBtn").style.display = "block";
+            }else document.getElementById("studentCanvasBtn").style.display = "none";
+
             $scope.tab = 4;
 
             $scope.setTab = function (newTab) {
@@ -4537,6 +4541,30 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             $scope.selectedRow = index;
             $scope.selectedStudent = $scope.students[index];
         };
+
+        $scope.fetchStudentsCanvas = function(){
+            if($scope.selectedTeam && $scope.selectedTeam.id){
+                $http({
+                     url: './rest/canvasStudent/'+$scope.selectedTeam.id,
+                     method: "GET",
+                     headers: {'token': $rootScope.enteredCanvasToken}
+                 }).then(function (response) {
+                    console.log(response.data);
+                    for(let i=0;i<response.data.length;i++){
+                        $scope.enteredEmail = response.data[i].login_id + "@asu.edu";
+                        $scope.enteredName = response.data[i].name;
+                        $scope.enteredPassword = response.data[i].login_id;
+                        $scope.enteredGitHubUsername = response.data[i].login_id;
+                        $scope.enteredTaigaUsername = response.data[i].login_id;
+                        $scope.enteredSlackUsername = response.data[i].login_id;
+                        $scope.saveStudent();
+                    }
+                    $scope.clearStudentForm();
+                  }, function (response) {
+                     console.log("didn't work");
+                 });
+            }
+        }
 
         $scope.saveStudent = function() {
             if($scope.currentTeam != ""){
@@ -4778,6 +4806,14 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             $rootScope.provisionMode = true;
 
+            if($rootScope.enteredCanvasToken && $rootScope.enteredCanvasToken != ''
+                && $rootScope.enteredCanvasToken != "n/a"){
+                document.getElementById("adminCanvasBtn").style.display = "block";
+            }else {
+                document.getElementById("adminCanvasBtn").style.display = "none";
+
+            }
+
             $scope.tab = 2;
 
             $scope.setTab = function (newTab) {
@@ -4815,6 +4851,22 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedAdmin = $scope.admins[index];
             };
 
+             $scope.fetchAdminCanvas = function(){
+                 $http({
+                     url: './rest/canvasAdmin/'+$rootScope.selectedCanvasCourse.id,
+                     method: "GET",
+                     headers: {'token': $rootScope.enteredCanvasToken}
+                 }).then(function (response) {
+                    if(response.data[0]){
+                         $scope.enteredName = response.data[0].name;
+                         if(response.data[0].login_id)
+                             $scope.enteredEmail = response.data[0].login_id + "@asu.edu";
+                    }
+                 }, function (response) {
+                     console.log("didn't work");
+                 });
+            }
+
             $scope.saveAdmin = function() {
                 if ($scope.enteredEmail != null && $scope.enteredEmail != '') {
                     if ($scope.enteredName != null && $scope.enteredName != '') {
@@ -4849,7 +4901,21 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     $scope.message = 'Please Enter Email prior to saving an Amdin';
                 }
             };
-
+            $scope.fetchAdminCanvas = function(){
+                 $http({
+                     url: './rest/canvasAdmin/'+$rootScope.selectedCanvasCourse.id,
+                     method: "GET",
+                     headers: {'token': $rootScope.enteredCanvasToken}
+                 }).then(function (response) {
+                    if(response.data[0]){
+                         $scope.enteredName = response.data[0].name;
+                         if(response.data[0].login_id)
+                             $scope.enteredEmail = response.data[0].login_id + "@asu.edu";
+                    }
+                 }, function (response) {
+                     console.log("didn't work");
+                 });
+            }
             $scope.saveAdminsJSON = function(adminsArray) {
                 if(adminsArray[0]) {
                     if (adminsArray[0].email) {
@@ -4981,6 +5047,12 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
 
             $scope.gitHubVerified = false;
 
+
+            if($rootScope.enteredCanvasToken){
+                document.getElementById("teamCanvasBtn").style.display = "block";
+            }else document.getElementById("teamCanvasBtn").style.display = "none";
+
+
             var fromCSV = false;
 
             var isEdit = false;
@@ -5040,7 +5112,6 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     console.log(response.data);
                     $scope.canvasTeams = response.data;
                     document.getElementById('teamsDropDownModal').style.display = 'block';
-                    // open modal to show dropdown for all the teams and select multiple teams to add them.
                  }, function (response) {
                      console.log("didn't work");
                  });
@@ -5050,6 +5121,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.enteredTaigaSlug = $scope.selectedCanvasTeams.name;
                 $scope.enteredGitHubRepo = $scope.selectedCanvasTeams.name;
                 $scope.enteredSlackTeam = $scope.selectedCanvasTeams.name;
+                $scope.team.id = $scope.selectedCanvasTeams.id;
                 $scope.closeModal('teamsDropDownModal');
             }
 
@@ -5765,6 +5837,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fetchCourseCanvas = function(){
+                $rootScope.enteredCanvasToken = $scope.enteredCanvasToken;
                 $http({
                     url: './rest/canvasCourses',
                     method: "GET",
@@ -5773,7 +5846,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     console.log(response.data)
                     $scope.enteredCanvasToken = '';
                     $scope.closeModal("myModal");
-                    $scope.canvasCourses = response.data;;
+                    $scope.canvasCourses = response.data;
                     $scope.openModal("dropDownModal");
                 }, function (response) {
                     console.log("didn't work");
@@ -5781,6 +5854,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
            }
 
            $scope.fillUpCourse = function(){
+                $rootScope.selectedCanvasCourse = $scope.SelectedCanvasCourse;
                 $scope.enteredCourseName = $scope.SelectedCanvasCourse.name;
                 if($scope.SelectedCanvasCourse.end_at)
                     $scope.enteredEndDate = $scope.SelectedCanvasCourse.end_at;
@@ -5912,6 +5986,8 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                         //console.log("Team Index: " + i);
                         teamCreateService.setTeam($rootScope.coursePackage.teams[i].team_name);
                         $scope.currentTeam = $scope.selectedTeam.team_name;
+                        $scope.enteredId = $scope.selectedTeam.team_name;
+                        $scope.saveChannel();
                     }
                 }
             };
