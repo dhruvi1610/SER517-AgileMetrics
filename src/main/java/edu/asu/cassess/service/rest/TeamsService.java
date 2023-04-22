@@ -86,7 +86,7 @@ public class TeamsService implements ITeamsService {
     @Override
     public List<Team> getTeamCanvas(Long courseId, String canvasToken) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://canvas.asu.edu/api/v1/courses/"+courseId+"/groups";
+        String url = "https://canvas.asu.edu/api/v1/courses/"+courseId+"/groups?per_page=30";
         HttpHeaders headers = new HttpHeaders();
         if(!canvasToken.equalsIgnoreCase("na")) {
             headers.setBearerAuth(canvasToken);
