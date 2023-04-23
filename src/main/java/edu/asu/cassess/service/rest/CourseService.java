@@ -88,7 +88,7 @@ public class CourseService implements ICourseService {
     @Override
     public List<Course> getCourseFromCanvas(String canvasToken){
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://canvas.asu.edu/api/v1/courses";
+        String url = "https://canvas.asu.edu/api/v1/courses?per_page=30";
         HttpHeaders headers = new HttpHeaders();
         if(!canvasToken.equalsIgnoreCase("na")) {
             headers.setBearerAuth(canvasToken);

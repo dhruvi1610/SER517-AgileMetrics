@@ -137,7 +137,7 @@ public class StudentsService implements IStudentsService {
     @Override
     public List<StudentDTO> getStudentsCanvas(String canvasToken, long teamId) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://canvas.asu.edu/api/v1/groups/"+teamId+"/users";
+        String url = "https://canvas.asu.edu/api/v1/groups/"+teamId+"/users?per_page=10";
         HttpHeaders headers = new HttpHeaders();
         if(!canvasToken.equalsIgnoreCase("na")) {
             headers.setBearerAuth(canvasToken);
