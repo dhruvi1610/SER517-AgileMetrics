@@ -49,6 +49,7 @@ public class AdminsService implements IAdminsService {
         return adminsDao.listReadAll();
     }
     @Override
+    // method for making api request to fetch the name of the professor from canvas using canvas access token and course id.
     public List<AdminDto> getAdminFromCanvas(String canvasToken, String course_id){
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://canvas.asu.edu/api/v1/courses/"+course_id+"/enrollments?type[]=TeacherEnrollment";

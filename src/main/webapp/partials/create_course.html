@@ -61,8 +61,13 @@
                                         <input min="{{minDate | date:'yyyy-MM-dd'}}" type="date" class="form-control" ng-model="enteredEndDate" ng-required="true" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}">
                                     </div>
                                     <div ng-show="!showTaigaForm" class="form-group">
-                                        <label>Taiga Token</label>
-                                        <input type="text" class="form-control" ng-model="enteredTaigaToken" placeholder="Enter Taiga token" ng-required="true">
+                                        <div style="float:left width:300px">
+                                            <label>Taiga Token</label>
+                                            <input type="text" class="form-control" ng-model="enteredTaigaToken" placeholder="Enter Taiga token" ng-required="true">
+                                        </div>
+
+                                        <button ng-click="openModal('taigaTokenModal')" class="btn btn-primary">How</button>
+                                        <button ng-click="openModal('taigaTokenPersonModal')" class="btn btn-primary">Who</button>
                                     </div>
                                     <div ng-show="!showTaigaForm" class="form-group">
                                         <label>Taiga Refresh Token</label>
@@ -84,6 +89,8 @@
                                     <div class="form-group">
                                         <label>Slack Token</label>
                                         <input type="text" class="form-control" ng-model="enteredSlackToken" placeholder="Enter Slack token">
+                                        <button ng-click="openModal('slackTokenModal')" class="btn btn-primary">How</button>
+                                        <button ng-click="openModal('slackTokenPersonModal')" class="btn btn-primary">Who</button>
                                     </div>
                                 </form>
                             </div>
@@ -130,6 +137,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Dialogue box for inserting canvas token -->
         <div id="myModal" class="modal">
 
             <!-- Modal content -->
@@ -141,12 +150,171 @@
                 <div class="modal-body">
                     <input type="text" class="form-control" ng-model="enteredCanvasToken" placeholder="Enter canvas token">
                 </div>
+                <button class="btn btn-primary" ng-click="openModal('canvasTokenModel')">How</button>
+
                 <div class="modal-footer">
                     <button ng-click = "fetchCourseCanvas()" class="btn btn-primary">Submit</button>
                 </div>
             </div>
 
         </div>
+
+
+        <!-- Dialogue box for information on how to generate taiga token -->
+        <div id="taigaTokenModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('taigaTokenModal')">&times;</span>
+                    <h2>How to generate taiga token?</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>For getting the taiga token and taiga refresh token, you need to know your taiga
+                        username and taiga password.
+                    </h3>
+                    <h4>Step 1:  </h4>
+                    <p>go to the url <a href="https://www.postman.com/">Postman</a> </p>
+
+                    <h4>Step 2:  </h4>
+                    <p>create a free account if you don’t already have one</p>
+                    <h4>Step 3:  </h4>
+                    <p>click on My workspace</p>
+                    <h4>Step 4:  </h4>
+                    <p>Create new <b>POST</b> request to <a href="https://api.taiga.io/api/v1/auth">https://api.taiga.io/api/v1/auth</a> </p>
+
+                        <p>Content of the raw body of the request can be copied from below.</p>
+                        <p>{"username":"your taiga username" ,</p>
+                        <p>"password":"your taiga password",</p>
+                        <p>"type":"normal"} </p>
+                    <h4>Step 5:  </h4>
+                    <p>Hit send you will get json data on the response screen</p>
+                    <p>The string in front of <b>“auth_token”</b> is your <b>authentication token For taiga </b></p>
+                    <p>The string in front of <b>“refresh”</b> is our <b>taiga refresh token</b>.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('taigaTokenModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dialogue box for information on whose access token should be added as taiga token -->
+        <div id="taigaTokenPersonModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('taigaTokenPersonModal')">&times;</span>
+                    <h2>Whose taiga token needs to be added?</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>There can be two options based on the scenario. </h3>
+                    <h4>Scenario 1:</h4>
+                    <p>Professor is added as member/stakeholder/any role in taiga taskboard of all the teams. In this case the taiga token will be of professor.</p>
+                    <h4>Scenario 2:</h4>
+                    <p>TA  is added as member/stakeholder/any role in taiga taskboard of all the teams. In this case the taiga token will be of TA. </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('taigaTokenPersonModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dialogue box for information on how to generate canvas token -->
+        <div id="canvasTokenModel" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('canvasTokenModel')">&times;</span>
+                    <h2>How to generate canvas token?</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>For getting the canvas token you need to log into your canvas account using your credentials.
+                    </h3>
+                    <h4>Step 1:  </h4>
+                    <p>click on your profile button on the left panel. </p>
+
+                    <h4>Step 2:  </h4>
+                    <p>Click on settings from the opened panel. Scroll down till you see button named new access token.
+                    </p>
+                    <h4>Step 3:  </h4>
+                    <p>click on the new access token. you will see a dialogue box with fields "purpose" and "expiration"</p>
+                    <h4>Step 4:  </h4>
+                    <p>fill up the details and click on generate token</p>
+                    <h3> Your canvas Token will be generated. </h3>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('canvasTokenModel')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dialogue box for information on how to generate slack token -->
+        <div id="slackTokenModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('slackTokenModal')">&times;</span>
+                    <h2>How to generate slack token?</h2>
+                </div>
+                <div class="modal-body">
+                    <h4>Step 1: </h4>
+                    <p>go to the url <a href="https://api.slack.com/">https://api.slack.com/</a> and log in </p>
+                    <h4>Step 2: </h4>
+                    <p>click on your apps</p>
+                    <h4>Step 3: </h4>
+                    <p>Create an app from scratch give an app name and the workspace</p>
+                    <h4>Step 4 : </h4>
+                    <p>Open the app -- >  OAuth & Permissions (features) -- >give the user token scopes </p>
+                    <h4>Step 5 : </h4>
+                    <p>install to workspace and approve</p>
+                    <h3>slack Token will be generated. </h3>
+
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('slackTokenModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dialogue box for information on whose access token should be added as slack token -->
+        <div id="slackTokenPersonModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('slackTokenPersonModal')">&times;</span>
+                    <h2>Whose slack token needs to be added?</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>There can be two options based on the scenario. </h3>
+                    <h4>Scenario 1:</h4>
+                    <p>Professor is added as member in <b>all</b> the slack teams. In this case slack token will be of Professor.</p>
+                    <h4>Scenario 2:</h4>
+                    <p>TA is added as member in <b>all</b> the slack teams. In this case slack token will be of TA. </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('slackTokenPersonModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- Dialogue box for showing dropdown menu for fetched canvas teams based on canvas token -->
         <div id="dropDownModal" class="modal">
 
             <!-- Modal content -->

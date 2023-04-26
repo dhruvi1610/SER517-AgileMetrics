@@ -82,7 +82,7 @@ public class TeamsService implements ITeamsService {
     public <T> Object deleteByCourse(Course course) {
         return teamsDao.deleteByCourse(course);
     }
-
+    // method for fetching the names of the teams on canvas using course id and canvas access token
     @Override
     public List<Team> getTeamCanvas(Long courseId, String canvasToken) {
         RestTemplate restTemplate = new RestTemplate();
