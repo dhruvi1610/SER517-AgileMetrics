@@ -98,6 +98,8 @@
                                 <div class="form-group">
                                     <label>GitHub Token</label>
                                     <input type="text" class="form-control"ng-model="enteredGitHubToken" placeholder="Enter GitHub token" ng-required="true" ng-change="setGitHubUnverified()">
+                                    <button ng-click="openModal('githubTokenModal')" class="btn btn-primary">How</button>
+                                    <button ng-click="openModal('githubTokenPersonModal')" class="btn btn-primary">Who</button>
                                     <button ng-click="verifyGitHub()" class="btn btn-primary">Verify GitHub</button>
                                     <span ng-show="gitHubVerified" class="ng-hide glyphicon glyphicon-ok" style="color:green;">Verified</span>
                                     <span ng-show="gitHubNotVerified" class="ng-hide glyphicon glyphicon-remove" style="color:red;">Unverified</span>
@@ -144,6 +146,64 @@
                 </ul>
             </div>
         </div>
+
+        <!-- Dialogue box for information on how to generate github token -->
+        <div id="githubTokenModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('githubTokenModal')">&times;</span>
+                    <h2>How to get the github access token?</h2>
+                </div>
+                <div class="modal-body">
+
+                    <h4>Step 1:  </h4>
+                    <p>go to the url <a href="https://github.com/">https://github.com/</a> and log in</p>
+                    <h4>Step 2:  </h4>
+                    <p>go to your profile, click on setting button.</p>
+                    <h4>Step 3:  </h4>
+                    <p>scroll all the way down till you reach last option on left side Panel.</p>
+                    <h4>Step 4:  </h4>
+                    <p>click on developer settings> personal access token.</p>
+                    <h4>Step 5:  </h4>
+                    <p>generate a token, name it as you like, give only reading rights to the
+                        Token.</p>
+                    <h3> Your github access Token will be generated. </h3>
+                </div>
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('githubTokenModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Dialogue box for information on whose access token should be added as github token -->
+        <div id="githubTokenPersonModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="close" ng-click = "closeModal('githubTokenPersonModal')">&times;</span>
+                    <h2>Whose Github token needs to be added?</h2>
+                </div>
+                <div class="modal-body">
+                    <h3>There can be three options based on the scenario. </h3>
+                    <h4>Scenario 1:</h4>
+                    <p>Professor is added as member <b>all</b> the team's Github repository. In this case Github token will be of Professor. Same Github token for all the teams</p>
+                    <h4>Scenario 2:</h4>
+                    <p>TA is added as member <b>all</b> the team's Github repository. In this case Github token will be of TA. Same Github token for all the teams</p>
+                    <h4>Scenario 3:</h4>
+                    <p>Neither TA nor Professor is part of <b>all</b> the Github repository, Token can be of any one team member who is a part of that particular team. In this case Github token for each team will be different. 1 token per team.</p>
+                </div>
+
+                <div class="modal-footer">
+                    <button ng-click = "closeModal('githubTokenPersonModal')" class="btn btn-primary">ok</button>
+                </div>
+            </div>
+
+        </div>
+        <!-- Dialogue box for showing dropdown menu for fetched canvas teams based on course id and canvas token -->
         <div id="teamsDropDownModal" class="modal">
 
             <!-- Modal content -->

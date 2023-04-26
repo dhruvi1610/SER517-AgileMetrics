@@ -84,7 +84,7 @@ public class CourseService implements ICourseService {
 
         return courseRepo.save(updatedCourses);
     }
-
+    // method to fetch course details associated with given canvas access token.
     @Override
     public List<Course> getCourseFromCanvas(String canvasToken){
         RestTemplate restTemplate = new RestTemplate();

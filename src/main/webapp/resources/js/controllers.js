@@ -4899,7 +4899,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.selectedRow = index;
                 $scope.selectedAdmin = $scope.admins[index];
             };
-
+//function for fetching name of professor from canvas using course id and canvas access token
              $scope.fetchAdminCanvas = function(){
                  $http({
                      url: './rest/canvasAdmin/'+$rootScope.selectedCanvasCourse.id,
@@ -5134,6 +5134,12 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             var gitHubInfoChanged = false;
 
             var taigaInfoChanged = false;
+            $scope.openModal = function(modalId){
+                            document.getElementById(modalId).style.display = "block";
+                       }
+                       $scope.closeModal = function(modalId){
+                            document.getElementById(modalId).style.display = "none";
+                       }
 
             if ($rootScope.coursePackage.course === course) {
                 $scope.teams = $rootScope.coursePackage.teams;
@@ -5151,7 +5157,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             if(course === null){
                 window.location.href = 'http://cassess.fulton.asu.edu/cassess/#/create_course';
             }
-
+// function to fetch team names from canvas based on course id and canvas access token
             $scope.fetchTeamCanvas = function(){
                 $http({
                      url: './rest/canvasTeam/'+$rootScope.selectedCanvasCourse.id,
@@ -5165,6 +5171,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                      console.log("didn't work");
                  });
             }
+// function to fill the fields on create team page based on data fetched from canvas api
             $scope.fillUpTeams = function(){
                 $scope.enteredTeamName = $scope.selectedCanvasTeams.name;
                 $scope.enteredTaigaSlug = $scope.selectedCanvasTeams.name;
@@ -5173,7 +5180,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.team.id = $scope.selectedCanvasTeams.id;
                 $scope.closeModal('teamsDropDownModal');
             }
-
+// function to close dialogue box
             $scope.closeModal = function(id){
                 document.getElementById(id).style.display = '';
             }
@@ -5190,7 +5197,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
               isPrivateRepo = !isPrivateRepo;
             }
 
-
+// function to save the filled teams into the table on create teams page.
             $scope.saveTeam = function() {
                 if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
                     if($scope.enteredTaigaSlug != null && $scope.enteredTaigaSlug != ''){
@@ -5255,7 +5262,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     $scope.message = 'Please Enter Team Name prior to saving a Team';
                 }
             };
-
+// function to save the team information from json input file.
             $scope.saveTeamsJSON = function(teamsArray) {
                 if(teamsArray[0]){
                     if(teamsArray[0].team_name){
@@ -5283,7 +5290,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 }
 
             };
-
+//function to remove team from table
             $scope.removeTeam = function() {
                 for (var i in $scope.teams) {
                     var team_name = $scope.selectedTeam.team_name;
@@ -5293,7 +5300,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     }
                 }
             };
-
+// function to clear the form on team creation page
             $scope.clearTeamForm = function() {
                 fromCSV = false;
                 $scope.enteredTeamName = '';
@@ -5871,7 +5878,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     alert("Cannot read file !");
                 }
             };
-
+// functions to open and close the dialogue box
            $scope.openModal = function(modalId){
                 document.getElementById(modalId).style.display = "block";
            }
@@ -5884,7 +5891,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 $scope.closeModal("myModal");
              }
            }
-
+// function to fetch courses from canvas based on canvas access token on create_course page
            $scope.fetchCourseCanvas = function(){
                 $rootScope.enteredCanvasToken = $scope.enteredCanvasToken;
                 $http({
@@ -5901,7 +5908,7 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                     console.log("didn't work");
                 });
            }
-
+// function to fill up the fields on form based on canvas data gathered from api
            $scope.fillUpCourse = function(){
                 $rootScope.selectedCanvasCourse = $scope.SelectedCanvasCourse;
                 $scope.enteredCourseName = $scope.SelectedCanvasCourse.name;

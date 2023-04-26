@@ -133,7 +133,7 @@ public class StudentsService implements IStudentsService {
     public List<TeamNames> listGetAssignedTeams(String email, String course) {
         return studentsDao.listGetAssignedTeams(email, course);
     }
-
+// method for fetching the names of the students on canvas using team id and canvas access token
     @Override
     public List<StudentDTO> getStudentsCanvas(String canvasToken, long teamId) {
         RestTemplate restTemplate = new RestTemplate();
