@@ -3,6 +3,7 @@ package edu.asu.cassess.service.rest;
 import edu.asu.cassess.dto.github.FileChangesDto;
 import edu.asu.cassess.dto.github.internal.CommitDetailDto;
 import edu.asu.cassess.persist.entity.github.GithubBlame;
+import edu.asu.cassess.projections.GitFileChangesStats;
 import edu.asu.cassess.persist.repo.github.IGithubBlameRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,6 +51,16 @@ public class GithubBlameService implements IGithubBlameService{
   @Override
   public Set<String> findDistictCommitIdsOfCourse(String course) {
     return githubBlameRepository.findDistinctCommitIdsOfCourse(course);
+  }
+
+  @Override
+  public List<GitFileChangesStats> getLineChangesOfTeams(String course) {
+    return githubBlameRepository.getLineChangesOfTeams(course);
+  }
+
+  @Override
+  public List<GitFileChangesStats> getLineChangesOfStudents(String course, String team) {
+    return githubBlameRepository.getLineChangesOfStudents(course, team);
   }
 
   private static List<CommitDetailDto> convertObjectToCommitDto(List<Object[]> data) {

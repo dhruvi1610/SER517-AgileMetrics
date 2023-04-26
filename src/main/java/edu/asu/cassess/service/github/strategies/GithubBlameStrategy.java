@@ -7,6 +7,7 @@ import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.github.GithubBlameId;
 import edu.asu.cassess.persist.entity.rest.Student;
 import edu.asu.cassess.persist.entity.rest.Team;
+import edu.asu.cassess.service.rest.IGithubBlameService;
 import edu.asu.cassess.utils.DateUtil;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,11 +16,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-public class GithubBlameStrategy implements GithubStrategy {
+@Component
+public class GithubBlameStrategy implements IGithubStrategy {
 
   public static final String BASE_URL = "https://api.github.com/repos";
+
+  @Autowired
+  private IGithubBlameService githubBlameService;
 
   private RestTemplate restTemplate;
 
@@ -31,8 +38,9 @@ public class GithubBlameStrategy implements GithubStrategy {
     this.restTemplate = restTemplate;
   }
 
-  public List<GithubBlame> fetchData(List<Team> teams, Set<String> commitIdSet) {
+  public void consumeData(List<Team> teams) {
     List<GithubBlame> result = new ArrayList<>();
+    Set<String> commitIdSet = githubBlameService.findDistictCommitIds();
 
     for (Team team : teams) {
       String commitUrl = String.format("%s/%s/%s/commits", BASE_URL, team.getGithub_owner(), team.getGithub_repo_id());
@@ -51,7 +59,7 @@ public class GithubBlameStrategy implements GithubStrategy {
       }
     }
 
-    return result;
+    githubBlameService.saveMany(result);;
   }
 
   private List<String> getNewCommitIdsOfStudents(String commitUrl, Map<String, String> studentsMap, Set<String> commitIdSet) {

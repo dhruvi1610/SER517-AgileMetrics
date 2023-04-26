@@ -2,6 +2,7 @@ package edu.asu.cassess.persist.repo.github;
 
 import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.github.GithubBlameId;
+import edu.asu.cassess.projections.GitFileChangesStats;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +23,12 @@ public interface IGithubBlameRepository extends JpaRepository<GithubBlame, Githu
 
   @Query("SELECT distinct(githubBlameId.commitId) FROM GithubBlame WHERE course = ?1")
   Set<String> findDistinctCommitIdsOfCourse(String course);
+
+  @Query(value = "SELECT team, full_name, sum(lines_of_code_added) as additions, sum(lines_of_code_deleted) as deletions "
+      + "FROM github_blame where course = ?1 group by team", nativeQuery = true)
+  List<GitFileChangesStats> getLineChangesOfTeams(String course);
+
+  @Query(value = "SELECT team, full_name, sum(lines_of_code_added) as additions, sum(lines_of_code_deleted) as deletions "
+      + "FROM github_blame where course = ?1 and team = ?2 group by full_name", nativeQuery = true)
+  List<GitFileChangesStats> getLineChangesOfStudents(String course, String team);
 }

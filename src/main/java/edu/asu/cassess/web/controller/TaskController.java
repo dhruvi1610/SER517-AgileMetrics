@@ -1,12 +1,13 @@
 package edu.asu.cassess.web.controller;
 
+import constants.AppConstants;
 import edu.asu.cassess.model.rest.CourseList;
 import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Team;
 import edu.asu.cassess.service.github.IGatherGitHubData;
-import edu.asu.cassess.service.github.strategies.GithubBlameStrategy;
-import edu.asu.cassess.service.github.strategies.GithubContext;
+import edu.asu.cassess.service.github.strategies.IGithubStrategy;
+import edu.asu.cassess.service.github.strategies.GithubStrategyFactory;
 import edu.asu.cassess.service.rest.ICourseService;
 import edu.asu.cassess.service.rest.IGithubBlameService;
 import edu.asu.cassess.service.rest.ITeamsService;
@@ -14,10 +15,7 @@ import edu.asu.cassess.service.slack.IChannelHistoryService;
 import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import edu.asu.cassess.utils.DateUtil;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -32,9 +30,8 @@ import java.util.List;
 @RestController
 @PropertySource("classpath:scheduling.properties")
 public class TaskController {
-
-	@Autowired
-	private ITaskDataService taigaDataService;
+    @Autowired
+	  private ITaskDataService taigaDataService;
 
     @Autowired
     private IChannelHistoryService channelHistoryService;
@@ -53,6 +50,9 @@ public class TaskController {
 
     @Autowired
     private ITaigaSprintService taigaSprintService;
+
+    @Autowired
+    private GithubStrategyFactory githubStrategyFactory;
 	
 	@Scheduled(cron = "${taiga.cron.expression}")
 	public void TaigaTasks() {
@@ -64,13 +64,18 @@ public class TaskController {
 	}
 
     @Scheduled(cron = "${github.stats.cron.expression}")
+    //@Scheduled(fixedRate = 10000)
     public void GitHubStats() {
         Map<String, Course> courseMap = coursesService.listRead().stream()
             .collect(Collectors.toMap(Course::getCourse, course -> course));
         List<Team> teams = teamsService.listReadAll();
         for(Team team: teams){
             if(team.getCourse() != null) {
+
                 Course course = courseMap.get(team.getCourse());
+               // if(course != null && course.getCourse().equals("SER 517"))
+                    //gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
+
                 if(DateUtil.isDateLesserThanEqual(LocalDate.now(), course.getEnd_date().toLocalDate())) {
                     gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), course.getCourse(), team.getTeam_name(), team.getGithub_token());
                 }
@@ -80,22 +85,21 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${github.blame.cron.expression}")
-    @Scheduled(fixedRate = 1000000)
+    //@Scheduled(fixedRate = 1000000)
     public void GitHubBlame() {
         Map<String, Course> courseMap = coursesService.listRead().stream()
             .collect(Collectors.toMap(Course::getCourse, course -> course));
-        GithubContext githubContext = new GithubContext(new GithubBlameStrategy());
         List<Team> teams = teamsService.listReadAll().stream().filter(team -> {
             if(team.getCourse() != null) {
                 Course course = courseMap.get(team.getCourse());
-                return course.getCourse().equals("Test Course");
-//                return (DateUtil.isDateLesserThanEqual(LocalDate.now(), course.getEnd_date().toLocalDate()));
+               //if(course != null)
+                 //return course.getCourse().equals("SER 517");
+                return (DateUtil.isDateLesserThanEqual(LocalDate.now(), course.getEnd_date().toLocalDate()));
             }
             return false;
         }).collect(Collectors.toList());
-        Set<String> commitIdSet = githubBlameService.findDistictCommitIds();
-        List<GithubBlame> result = githubContext.executeStrategy(teams, commitIdSet);
-        githubBlameService.saveMany(result);
+        IGithubStrategy githubStrategy = githubStrategyFactory.getStrategy(AppConstants.GITHUB_BLAME_STRATEGY);
+        githubStrategy.consumeData(teams);
         System.out.println("github blame cron for stats ran as scheduled");
     }
 
