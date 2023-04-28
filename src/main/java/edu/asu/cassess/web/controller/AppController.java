@@ -26,6 +26,7 @@ import edu.asu.cassess.persist.entity.taiga.TaigaSprint;
 import edu.asu.cassess.persist.entity.taiga.TaigaSprintDays;
 import edu.asu.cassess.persist.repo.UserRepo;
 import edu.asu.cassess.persist.repo.rest.StudentRepo;
+import edu.asu.cassess.projections.GitFileChangesStats;
 import edu.asu.cassess.security.SecurityUtils;
 import edu.asu.cassess.service.github.IGatherGitHubData;
 import edu.asu.cassess.service.rest.*;
@@ -423,6 +424,18 @@ public class AppController {
     public ResponseEntity<List<FileChangesDto>> getFileChangesOfCommit(@RequestHeader(name = "commitId", required = true) String commitId) {
         List<FileChangesDto> fileChanges = githubBlameService.findFileChangesOfCommit(commitId);
         return new ResponseEntity<>(fileChanges, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/github/file_changes/statsOfTeams")
+    public ResponseEntity<List<GitFileChangesStats>> getLineChangesOfTeams(@RequestHeader(name = "course", required = true) String course) {
+        return new ResponseEntity<>(githubBlameService.getLineChangesOfTeams(course), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/github/file_changes/statsOfStudents")
+    public ResponseEntity<List<GitFileChangesStats>> getLineChangesOfStudents(
+        @RequestHeader(name = "course", required = true) String course,
+        @RequestHeader(name = "team", required = true) String team) {
+        return new ResponseEntity<>(githubBlameService.getLineChangesOfStudents(course, team), HttpStatus.OK);
     }
 
     //Current and last week GH weight for a student

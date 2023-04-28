@@ -1,5 +1,6 @@
 package edu.asu.cassess.web.controller;
 
+import constants.AppConstants;
 import edu.asu.cassess.dao.slack.IConsumeUsers;
 import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
@@ -11,15 +12,14 @@ import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.security.User;
 import edu.asu.cassess.persist.repo.UserRepo;
 import edu.asu.cassess.service.github.IGatherGitHubData;
-import edu.asu.cassess.service.github.strategies.GithubBlameStrategy;
-import edu.asu.cassess.service.github.strategies.GithubContext;
+import edu.asu.cassess.service.github.strategies.IGithubStrategy;
+import edu.asu.cassess.service.github.strategies.GithubStrategyFactory;
 import edu.asu.cassess.service.rest.*;
 import edu.asu.cassess.service.security.IUserService;
 import edu.asu.cassess.service.taiga.IMembersService;
 import edu.asu.cassess.service.taiga.IProjectService;
 import edu.asu.cassess.service.taiga.ITaigaSprintService;
 import io.swagger.annotations.Api;
-import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -88,6 +88,9 @@ public class restController {
     @Autowired
     private IGithubBlameService githubBlameService;
 
+    @Autowired
+    private GithubStrategyFactory githubStrategyFactory;
+
 //-----------------------
 
     //New CoursePackage REST API Operations
@@ -144,10 +147,8 @@ public class restController {
             new Thread(() -> {
 //                taskController.GitHubStats();
 //                taskController.GitHubBlame();
-                GithubContext githubContext = new GithubContext(new GithubBlameStrategy());
-                Set<String> commitIdSet = githubBlameService.findDistictCommitIdsOfCourse(coursePackage.getCourse());
-                List<GithubBlame> result = githubContext.executeStrategy(coursePackage.getTeams(), commitIdSet);
-                githubBlameService.saveMany(result);
+                IGithubStrategy githubStrategy = githubStrategyFactory.getStrategy(AppConstants.GITHUB_BLAME_STRATEGY);
+                githubStrategy.consumeData(coursePackage.getTeams());
                 for(Team team : coursePackage.getTeams()) {
                     gatherData.fetchContributorsStats(team.getGithub_owner(), team.getGithub_repo_id(), coursePackage.getCourse(), team.getTeam_name(), team.getGithub_token());
                 }

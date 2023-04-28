@@ -969,8 +969,11 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             } else {
                 getTaigaWeightFreq();
                 getCourseStudents();
+                getLineChangesStats();
             }
         });
+
+
 
         function getCourseStudents() {
             $http({
@@ -984,6 +987,76 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
             }, function (response) {
                 console.log("didn't work");
             });
+        }
+
+function getLineChangesStats() {
+            $http({
+                url: './github/file_changes/statsOfTeams',
+                method: "GET",
+                headers: {'course': $scope.courseid}
+            }).then(function (response) {
+                $scope.dataForFileChangesStats = getDataForFileChangesStats(response.data);
+            }, function (response) {
+                console.log("didn't work");
+            });
+        }
+
+        $scope.optionsForLineChangesStats = {
+            chart: {
+                type: 'multiBarChart',
+                height: 450,
+                margin: {
+                    top: 60,
+                    right: 150,
+                    bottom: 100,
+                    left: 100
+                },
+
+                legend: {
+                    margin: {
+                        top: 0,
+                        right: 0,
+                        bottom: 20,
+                        left: 0
+                    },
+                    maxKeyLength: 100
+                },
+
+                x: function (d) {
+                    return d[0];
+                },
+                y: function (d) {
+                    return d[1];
+                },
+
+                clipEdge: true,
+                duration: 500,
+                stacked: false,
+
+                xAxis: {
+                    axisLabel: 'Teams',
+                    showMaxMin: false
+                },
+
+                yAxis: {
+                    axisLabel: 'Number of Lines',
+                    axisLabelDistance: 0
+                },
+            }
+        };
+
+        function getDataForFileChangesStats(array){
+            var linesOfCodeAdded = []; var linesOfCodeDeleted = []; var data = [];
+
+            for (let item of array){
+                linesOfCodeAdded.push([item[0], item[2]]);
+                linesOfCodeDeleted.push([item[0], item[3]]);
+            }
+
+            data.push({color: "#000000", key: "Lines Of Code Added", values: linesOfCodeAdded});
+            data.push({color: "#2E8B57", key: "Lines Of Code Deleted", values: linesOfCodeDeleted});
+
+            return data;
         }
 
         function getCommitsOfStudent() {
@@ -2022,9 +2095,79 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
                 getTeamStudents();
                 getTaigaCourseWeightFreq();
                 getCustomAttributeName();
+                getLineChangesStats();
             }
         });
+        function getLineChangesStats() {
+                    $http({
+                        url: './github/file_changes/statsOfStudents',
+                        method: "GET",
+                        headers: {'course': course, 'team': $scope.teamid}
+                    }).then(function (response) {
+                        $scope.dataForFileChangesStats = getDataForFileChangesStats(response.data);
+                    }, function (response) {
+                        //fail case
+                        console.log("didn't work");
+                    });
+                }
 
+                $scope.optionsForLineChangesStats = {
+                    chart: {
+                        type: 'multiBarChart',
+                        height: 450,
+                        margin: {
+                            top: 60,
+                            right: 150,
+                            bottom: 100,
+                            left: 100
+                        },
+
+                        legend: {
+                            margin: {
+                                top: 0,
+                                right: 0,
+                                bottom: 20,
+                                left: 0
+                            },
+                            maxKeyLength: 100
+                        },
+
+                        x: function (d) {
+                            return d[0];
+                        },
+                        y: function (d) {
+                            return d[1];
+                        },
+
+                        clipEdge: true,
+                        duration: 500,
+                        stacked: false,
+
+                        xAxis: {
+                            axisLabel: 'Students',
+                            showMaxMin: false
+                        },
+
+                        yAxis: {
+                            axisLabel: 'Number of Lines',
+                            axisLabelDistance: 0
+                        },
+                    }
+                };
+
+                function getDataForFileChangesStats(array){
+                  var linesOfCodeAdded = []; var linesOfCodeDeleted = []; var data = [];
+
+                 for (let item of array){
+                     linesOfCodeAdded.push([item[1], item[2]]);
+                     linesOfCodeDeleted.push([item[1], item[3]]);
+                 }
+
+                  data.push({color: "#000000", key: "Lines Of Code Added", values: linesOfCodeAdded});
+                  data.push({color: "#2E8B57", key: "Lines Of Code Deleted", values: linesOfCodeDeleted});
+
+                  return data;
+              }
         function getTeamStudents() {
             $http({
                url: './team_students',
@@ -2287,10 +2430,11 @@ myapp.controller('LoginController', function ($rootScope, $scope, AuthSharedServ
               inProgressTasks.push([date, item.inProgressTasks]);
               closedTasks.push([date, item.closedTasks]);
             }
-
             data.push({color: "#70728f", key: "NEW", values: newTasks, strokeWidth: 1, area: true});
             data.push({color: "#e47c40", key: "IN PROGRESS", values: inProgressTasks, strokeWidth: 1, area: true});
             data.push({color: "#a8e440", key: "CLOSED", values: closedTasks, strokeWidth: 1, area: true});
+
+
             return data;
           }
 

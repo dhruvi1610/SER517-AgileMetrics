@@ -109,42 +109,10 @@
                             <h3>GitHub Team Average Weight Activity</h3><br>
                             <nvd3 options='optionsForGitHubTeamWeight' data='dataForGitHubTeamWeight'></nvd3>
 
-                            <h3>GitHub Blame</h3><br>
-                            <label style="color: black">Select Student:</label>
-                            <select class="select_style"  ng-model="selectedStudent" ng-options="x.full_name for x in students"
-                                    ng-change="onStudentSelect(selectedStudent)">
-                            </select>
-                            {{ commits.length }} commit(s).
-                            <br>
-                            <label style="color: black">Select Commit:</label>
-                            <select class="select_style"  ng-model="selectedCommit" ng-options="getCommitOption(x) for x in commits"
-                                    ng-change="onCommitSelect(selectedCommit)">
-                            </select>
-                            {{ files.length }} file(s) changed.
-                            <br>
-                            <br>
-                            <div>
-                                <div class="panel panel-default" ng-repeat="file in files">
-                                    <div class="panel-heading">
-                                        <h4 class="panel-title">
-                                            <i data-toggle="collapse" href="{{ '#' + $index }}" style="cursor: pointer">
-                                                {{ file.filename }}
-                                            </i>
-                                        </h4>
-                                    </div>
-                                    <div id="{{ $index }}" class="panel-collapse collapse">
-                                        <div class="panel-body" style="overflow: auto; max-height: 800px; display: flex; flex-direction: column">
-                                            <span style="border-bottom: 1px solid lightgrey; text-transform: capitalize">
-                                                Status: {{ file.status }} | Additions: {{ file.additions }} | Deletions: {{ file.deletions }}
-                                            </span><br>
-                                            <div ng-repeat="line in file.lines">
-                                                <span ng-style="line.style" ng-if="line.content !== 'NEW_LINE'" ng-bind="line.content"></span>
-                                                <br ng-if="line.content === 'NEW_LINE'">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <h3>GitHub File Changes Stats</h3><br>
+                            <nvd3 options='optionsForLineChangesStats' data='dataForFileChangesStats'></nvd3>
+
+
                         </div>
                     </div>
                     <div ng-if="isSet(4)">
