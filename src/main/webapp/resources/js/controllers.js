@@ -2334,7 +2334,7 @@ function getLineChangesStats() {
 
         $scope.optionsForCummulativeFlowChart = {
             chart: {
-                type: 'lineChart',
+                type: 'stackedAreaChart',
                 height: 450,
                 margin : {
                     top: 50,
@@ -2430,9 +2430,9 @@ function getLineChangesStats() {
               inProgressTasks.push([date, item.inProgressTasks]);
               closedTasks.push([date, item.closedTasks]);
             }
-            data.push({color: "#70728f", key: "NEW", values: newTasks, strokeWidth: 1, area: true});
-            data.push({color: "#e47c40", key: "IN PROGRESS", values: inProgressTasks, strokeWidth: 1, area: true});
-            data.push({color: "#a8e440", key: "CLOSED", values: closedTasks, strokeWidth: 1, area: true});
+            data.push({color: "#a8e440", key: "CLOSED", values: closedTasks});
+            data.push({color: "#e47c40", key: "IN PROGRESS", values: inProgressTasks});
+            data.push({color: "#70728f", key: "NEW", values: newTasks});
 
 
             return data;
@@ -5342,70 +5342,66 @@ function getLineChangesStats() {
             }
 
 // function to save the filled teams into the table on create teams page.
-            $scope.saveTeam = function() {
-                if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
-                    if($scope.enteredTaigaSlug != null && $scope.enteredTaigaSlug != ''){
-                        if ($scope.enteredGitHubOwner != null && $scope.enteredGitHubOwner != '') {
-                            if ($scope.enteredGitHubToken != null && $scope.enteredGitHubToken != '') {
-                                if($scope.enteredGitHubRepo != null && $scope.enteredGitHubRepo != ''){
-                                    if($scope.taigaVerified === true){
-                                        $scope.team.hideTaigaOk = false;
-                                        $scope.team.hideTaigaRemove = true;
-                                    } else {
-                                        $scope.team.hideTaigaOk = true;
-                                        $scope.team.hideTaigaRemove = false;
-                                    }
-                                    if($scope.gitHubVerified === true){
-                                        $scope.team.hideGitHubOk = false;
-                                        $scope.team.hideGitHubRemove = true;
-                                    } else {
-                                        $scope.team.hideGitHubOk = true;
-                                        $scope.team.hideGitHubRemove = false;
-                                    }
-                                    $scope.team.team_name = $scope.enteredTeamName;
-                                    $scope.team.taiga_project_slug = $scope.enteredTaigaSlug;
-                                    $scope.team.github_owner = $scope.enteredGitHubOwner;
-                                    $scope.team.github_token = $scope.enteredGitHubToken;
-                                    $scope.team.taiga_custom_attribute = $scope.enteredTaigaCustomAttribute;
-                                    $scope.team.github_repo_id = $scope.enteredGitHubRepo;
-                                    $scope.team.slack_team_id = $scope.enteredSlackTeam;
-                                    var exists = false;
-                                    if ($scope.teams != null) {
-                                        for (var i in $scope.teams) {
-                                            if($scope.teams[i].team_name === $scope.team.team_name){
-                                                $scope.teams[i] = $scope.team;
-                                                exists = true;
-                                            }
-                                        }
-                                        if(!exists) {
-                                            if($scope.teams.length == 0){
-                                                $scope.teams = [$scope.team];
-                                            } else {
-                                                $scope.teams.push($scope.team);
-                                            }
-                                        }
-                                    } else {
-                                        $scope.teams = [$scope.team]
-                                    }
-                                    $scope.clearTeamForm();
-                                    $scope.team = {};
-                                    $scope.applyChanges();
-                                } else {
-                                    $scope.message = 'Please Enter GitHub Repo prior to saving a Team';
-                                }
-                            } else {
-                                $scope.message = 'Please Enter Github token prior to saving a Team';
-                            }
-                        } else {
-                            $scope.message = 'Please Enter GitHub owner prior to saving a Team';
-                        }
-                    } else {
-                        $scope.message = 'Please Enter Taiga Slug prior to saving a Team';
-                    }
-                } else {
-                    $scope.message = 'Please Enter Team Name prior to saving a Team';
-                }
-            };
+       $scope.saveTeam = function() {
+                       if($scope.enteredTeamName != null && $scope.enteredTeamName != ''){
+                           if($scope.enteredTaigaSlug != null && $scope.enteredTaigaSlug != ''){
+                               if ($scope.enteredGitHubOwner != null && $scope.enteredGitHubOwner != '') {
+                                   if($scope.enteredGitHubRepo != null && $scope.enteredGitHubRepo != ''){
+                                       if($scope.taigaVerified === true){
+                                           $scope.team.hideTaigaOk = false;
+                                           $scope.team.hideTaigaRemove = true;
+                                       } else {
+                                           $scope.team.hideTaigaOk = true;
+                                           $scope.team.hideTaigaRemove = false;
+                                       }
+                                       if($scope.gitHubVerified === true){
+                                           $scope.team.hideGitHubOk = false;
+                                           $scope.team.hideGitHubRemove = true;
+                                       } else {
+                                           $scope.team.hideGitHubOk = true;
+                                           $scope.team.hideGitHubRemove = false;
+                                       }
+                                       $scope.team.team_name = $scope.enteredTeamName;
+                                       $scope.team.taiga_project_slug = $scope.enteredTaigaSlug;
+                                       $scope.team.github_owner = $scope.enteredGitHubOwner;
+                                       $scope.team.github_token = $scope.enteredGitHubToken;
+                                       $scope.team.taiga_custom_attribute = $scope.enteredTaigaCustomAttribute;
+                                       $scope.team.github_repo_id = $scope.enteredGitHubRepo;
+                                       $scope.team.slack_team_id = $scope.enteredSlackTeam;
+                                       var exists = false;
+                                       if ($scope.teams != null) {
+                                           for (var i in $scope.teams) {
+                                               if($scope.teams[i].team_name === $scope.team.team_name){
+                                                   $scope.teams[i] = $scope.team;
+                                                   exists = true;
+                                               }
+                                           }
+                                           if(!exists) {
+                                               if($scope.teams.length == 0){
+                                                   $scope.teams = [$scope.team];
+                                               } else {
+                                                   $scope.teams.push($scope.team);
+                                               }
+                                           }
+                                       } else {
+                                           $scope.teams = [$scope.team]
+                                       }
+                                       $scope.clearTeamForm();
+                                       $scope.team = {};
+                                       $scope.applyChanges();
+                                   } else {
+                                       $scope.message = 'Please Enter GitHub Repo prior to saving a Team';
+                                   }
+                               } else {
+                                   $scope.message = 'Please Enter GitHub owner prior to saving a Team';
+                               }
+                           } else {
+                               $scope.message = 'Please Enter Taiga Slug prior to saving a Team';
+                           }
+                       } else {
+                           $scope.message = 'Please Enter Team Name prior to saving a Team';
+                       }
+                   };
 // function to save the team information from json input file.
             $scope.saveTeamsJSON = function(teamsArray) {
                 if(teamsArray[0]){

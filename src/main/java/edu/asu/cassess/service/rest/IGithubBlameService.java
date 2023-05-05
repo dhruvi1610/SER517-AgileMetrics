@@ -15,6 +15,7 @@ public interface IGithubBlameService {
   List<CommitDetailDto> findCommitsByFullName(String username);
   Set<String> findDistictCommitIds();
   Set<String> findDistictCommitIdsOfCourse(String course);
+  Set<String> findDistictCommitIdsOfCourseAndTeam(String course, String team);
   List<GitFileChangesStats> getLineChangesOfTeams(String course);
   List<GitFileChangesStats> getLineChangesOfStudents(String course, String team);
 }

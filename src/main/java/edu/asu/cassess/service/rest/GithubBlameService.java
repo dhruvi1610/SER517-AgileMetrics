@@ -54,6 +54,11 @@ public class GithubBlameService implements IGithubBlameService{
   }
 
   @Override
+  public Set<String> findDistictCommitIdsOfCourseAndTeam(String course, String team) {
+    return githubBlameRepository.findDistinctCommitIdsOfCourseAndTeam(course, team);
+  }
+
+  @Override
   public List<GitFileChangesStats> getLineChangesOfTeams(String course) {
     return githubBlameRepository.getLineChangesOfTeams(course);
   }

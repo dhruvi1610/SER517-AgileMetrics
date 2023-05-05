@@ -1,8 +1,8 @@
 package edu.asu.cassess.web.controller;
 
-import constants.AppConstants;
+import edu.asu.cassess.config.GithubStrategyConfig;
+import edu.asu.cassess.constants.AppConstants;
 import edu.asu.cassess.model.rest.CourseList;
-import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.rest.Course;
 import edu.asu.cassess.persist.entity.rest.Team;
 import edu.asu.cassess.service.github.IGatherGitHubData;
@@ -53,6 +53,12 @@ public class TaskController {
 
     @Autowired
     private GithubStrategyFactory githubStrategyFactory;
+
+    private GithubStrategyConfig githubStrategyConfig;
+
+    public TaskController() {
+        githubStrategyConfig = new GithubStrategyConfig();
+    }
 	
 	@Scheduled(cron = "${taiga.cron.expression}")
 	public void TaigaTasks() {
@@ -85,7 +91,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${github.blame.cron.expression}")
-    //@Scheduled(fixedRate = 1000000)
+//    @Scheduled(fixedRate = 1000000)
     public void GitHubBlame() {
         Map<String, Course> courseMap = coursesService.listRead().stream()
             .collect(Collectors.toMap(Course::getCourse, course -> course));
@@ -98,7 +104,7 @@ public class TaskController {
             }
             return false;
         }).collect(Collectors.toList());
-        IGithubStrategy githubStrategy = githubStrategyFactory.getStrategy(AppConstants.GITHUB_BLAME_STRATEGY);
+        IGithubStrategy githubStrategy = githubStrategyFactory.getStrategy(githubStrategyConfig.getSelectedStrategy());
         githubStrategy.consumeData(teams);
         System.out.println("github blame cron for stats ran as scheduled");
     }
@@ -113,6 +119,7 @@ public class TaskController {
     }
 
     @Scheduled(cron = "${taiga.sprints.cron.expression}")
+    //@Scheduled(fixedRate = 100000)
     public void TaigaSprints() {
         taigaSprintService.updateActiveSprints();
         System.out.println("taiga sprints cron ran as scheduled");

@@ -1,13 +1,12 @@
 package edu.asu.cassess.web.controller;
 
-import constants.AppConstants;
+import edu.asu.cassess.constants.AppConstants;
 import edu.asu.cassess.dao.slack.IConsumeUsers;
 import edu.asu.cassess.dao.taiga.IMemberQueryDao;
 import edu.asu.cassess.dao.taiga.IProjectQueryDao;
 import edu.asu.cassess.dao.taiga.ITaskTotalsQueryDao;
 import edu.asu.cassess.dto.rest.AdminDto;
 import edu.asu.cassess.dto.rest.StudentDTO;
-import edu.asu.cassess.persist.entity.github.GithubBlame;
 import edu.asu.cassess.persist.entity.rest.*;
 import edu.asu.cassess.persist.entity.security.User;
 import edu.asu.cassess.persist.repo.UserRepo;
@@ -119,7 +118,6 @@ public class restController {
     public
     @ResponseBody
     <T> Object newCoursePackage(@RequestBody Course coursePackage, HttpServletRequest request, HttpServletResponse response) {
-
         if (coursePackage == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return null;
@@ -133,8 +131,12 @@ public class restController {
             Date start_date = new Date(newDate.getTime());
             coursePackage.setStart_date(start_date);
             Object object = courseService.create(coursePackage);
-            projects.updateProjects(coursePackage.getCourse());
-            members.updateMembership(coursePackage.getCourse());
+            try {
+                projects.updateProjects(coursePackage.getCourse());
+                members.updateMembership(coursePackage.getCourse());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             consumeUsers.updateSlackUsers(coursePackage.getCourse());
             taigaSprintService.saveSprintsOfCourse(coursePackage.getCourse());
             taigaSprintService.saveTaskHistoryOfCourse(coursePackage.getCourse());
