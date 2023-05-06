@@ -40,9 +40,9 @@ public class GithubBlameStrategy implements IGithubStrategy {
 
   public void consumeData(List<Team> teams) {
     List<GithubBlame> result = new ArrayList<>();
-    Set<String> commitIdSet = githubBlameService.findDistictCommitIds();
 
     for (Team team : teams) {
+      Set<String> commitIdSet = githubBlameService.findDistictCommitIdsOfCourseAndTeam(team.getCourse(), team.getTeam_name());
       String commitUrl = String.format("%s/%s/%s/commits", BASE_URL, team.getGithub_owner(), team.getGithub_repo_id());
       Map<String, String> studentsMap = team.getStudents().stream()
           .collect(Collectors.toMap(Student::getGithub_username, Student::getFull_name));

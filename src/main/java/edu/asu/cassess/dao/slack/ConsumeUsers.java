@@ -61,14 +61,16 @@ public class ConsumeUsers implements IConsumeUsers {
 
     @Override
     public void saveUserList(UserList userList, String course) {
-        for(UserObject user : userList.getMembers()){
-            user.setCourse(course);
-            UserProfile userProfile = user.getProfile();
-            if(userProfile.getDisplay_name().isEmpty()) {
-                userProfile.setDisplay_name(user.getName());
-                user.setProfile(userProfile);
+        if(userList.getMembers() != null) {
+            for(UserObject user : userList.getMembers()){
+                user.setCourse(course);
+                UserProfile userProfile = user.getProfile();
+                if(userProfile.getDisplay_name().isEmpty()) {
+                    userProfile.setDisplay_name(user.getName());
+                    user.setProfile(userProfile);
+                }
+                dao.save(user);
             }
-            dao.save(user);
         }
     }
 

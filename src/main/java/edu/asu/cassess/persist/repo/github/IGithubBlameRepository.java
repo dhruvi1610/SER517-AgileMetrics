@@ -24,6 +24,9 @@ public interface IGithubBlameRepository extends JpaRepository<GithubBlame, Githu
   @Query("SELECT distinct(githubBlameId.commitId) FROM GithubBlame WHERE course = ?1")
   Set<String> findDistinctCommitIdsOfCourse(String course);
 
+  @Query("SELECT distinct(githubBlameId.commitId) FROM GithubBlame WHERE course = ?1 and team = ?2")
+  Set<String> findDistinctCommitIdsOfCourseAndTeam(String course, String team);
+
   @Query(value = "SELECT team, full_name, sum(lines_of_code_added) as additions, sum(lines_of_code_deleted) as deletions "
       + "FROM github_blame where course = ?1 group by team", nativeQuery = true)
   List<GitFileChangesStats> getLineChangesOfTeams(String course);
